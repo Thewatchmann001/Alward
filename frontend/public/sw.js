@@ -1,6 +1,6 @@
-// TrustBridge Service Worker - PWA Support
-const CACHE_NAME = 'trustbridge-v1';
-const RUNTIME_CACHE = 'trustbridge-runtime-v1';
+// Alward Service Worker - PWA Support
+const CACHE_NAME = 'alward-v1';
+const RUNTIME_CACHE = 'alward-runtime-v1';
 
 // Assets to cache on install
 const STATIC_ASSETS = [
@@ -128,12 +128,12 @@ self.addEventListener('push', (event) => {
     icon: '/trust.png',
     badge: '/trust.png',
     vibrate: [200, 100, 200],
-    tag: 'trustbridge-notification',
+    tag: 'alward-notification',
     requireInteraction: false,
   };
 
   event.waitUntil(
-    self.registration.showNotification('TrustBridge', options)
+    self.registration.showNotification('Alward', options)
   );
 });
 

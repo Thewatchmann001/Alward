@@ -13,23 +13,23 @@ from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.utils.logger import logger
-from app.api import users  # Keep users for authentication
-from app.api import messages  # Chat/messaging API
-from app.api import auth  # OAuth authentication
-from app.api.payments import router as payments_router
+from app.api import users
+from app.api import messages
+from app.api import auth
+from app.api.on_chain import router as on_chain_router
 from app.api.websocket import manager
-from app.core.exceptions import InvalidCredentials, UserNotFound, TrustBridgeException
+from app.core.exceptions import InvalidCredentials, UserNotFound, AlwardException
 from app.core.middleware import RateLimitMiddleware, CSRFProtectionMiddleware
-from routes import router as main_router  # New consolidated routes
+from routes import router as main_router
 
-# Removed: certificates, startups (old), jobs (old), cv (old), investments (old)
-# All functionality moved to new modules in /backend/cv and /backend/investments
+# Investment Platform, Startup Registry, and Trust Intelligence
+# (Legacy Career/Job features removed)
 
 # Create FastAPI app
 app = FastAPI(
-    title=settings.APP_NAME,
+    title="ALWARD Protocol",
     version=settings.APP_VERSION,
-    description="AI-Powered CV Builder & Global Job Matching + Diaspora Investment Platform",
+    description="Diaspora Investment Intelligence — Milestone-Gated USDC Escrow on Solana",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -56,11 +56,11 @@ app.add_middleware(CSRFProtectionMiddleware)
 app.add_middleware(RateLimitMiddleware)
 
 # Include routers
-app.include_router(users.router)  # Keep for authentication
-app.include_router(auth.router)  # OAuth authentication (Google, etc.)
-app.include_router(messages.router)  # Chat/messaging
-app.include_router(payments_router)
-app.include_router(main_router)  # New consolidated routes for CV and Investments
+app.include_router(users.router)
+app.include_router(auth.router)
+app.include_router(messages.router)
+app.include_router(on_chain_router)   # On-chain sync endpoints
+app.include_router(main_router)
 
 # Mount static files for photo uploads
 static_dir = Path(settings.UPLOAD_DIR).parent
@@ -87,9 +87,9 @@ async def user_not_found_handler(request: Request, exc: UserNotFound):
     )
 
 
-@app.exception_handler(TrustBridgeException)
-async def trustbridge_exception_handler(request: Request, exc: TrustBridgeException):
-    """Handle general TrustBridge exceptions."""
+@app.exception_handler(AlwardException)
+async def alward_exception_handler(request: Request, exc: AlwardException):
+    """Handle general ALWARD exceptions."""
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={"detail": str(exc)}
@@ -98,11 +98,12 @@ async def trustbridge_exception_handler(request: Request, exc: TrustBridgeExcept
 
 @app.get("/")
 async def root():
-    """Root endpoint."""
     return {
-        "message": "TrustBridge API",
+        "message": "ALWARD Protocol API",
         "version": settings.APP_VERSION,
-        "docs": "/docs"
+        "docs": "/docs",
+        "escrow_program": "ESCRmwcXk7qzL8YvhNbDqNRp2xzVgAR7SoYbHqHZkaDx",
+        "network": "Solana Devnet",
     }
 
 
@@ -160,5 +161,5 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     """Shutdown event handler."""
-    logger.info("Shutting down TrustBridge API")
+    logger.info("Shutting down ALWARD Protocol API")
 

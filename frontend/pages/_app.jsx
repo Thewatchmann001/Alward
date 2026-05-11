@@ -1,6 +1,5 @@
 import "../styles/globals.css";
 import { AuthProvider } from "../contexts/AuthContext";
-import { JobsProvider } from "../contexts/JobsContext";
 import { Toaster } from "react-hot-toast";
 import Layout from "../components/Layout";
 import Head from "next/head";
@@ -116,7 +115,7 @@ function MyApp({ Component, pageProps }) {
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f4f8' }}>
         <div style={{ textAlign: 'center' }}>
           <div className="animate-spin" style={{ width: 40, height: 40, border: '3px solid #ddd', borderTop: '3px solid #0A66C2', borderRadius: '50%', margin: '0 auto' }}></div>
-          <p style={{ marginTop: 16, color: '#666' }}>Loading TrustBridge...</p>
+          <p style={{ marginTop: 16, color: '#666' }}>Loading Alward...</p>
         </div>
       </div>
     );
@@ -130,12 +129,10 @@ function MyApp({ Component, pageProps }) {
             <WalletProvider wallets={wallets} autoConnect>
               <WalletModalProvider>
                 <AuthProvider>
-                  <JobsProvider>
-                    <Layout>
-                      <Component {...pageProps} />
-                    </Layout>
-                    <Toaster position="top-right" />
-                  </JobsProvider>
+                  <Layout>
+                    <Component {...pageProps} />
+                  </Layout>
+                  <Toaster position="top-right" />
                 </AuthProvider>
               </WalletModalProvider>
             </WalletProvider>
@@ -148,26 +145,23 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title>TrustBridge - Professional Career & Investment Platform</title>
+        <title>ALWARD — Your capital. Locked until the work is done.</title>
         <meta
           name="description"
-          content="AI-Powered CV Builder, Global Job Matching & Diaspora Investment Platform"
+          content="ALWARD is a milestone-gated USDC escrow protocol on Solana. Physical ground agents verify startup milestones on-chain before a single dollar moves to founders."
         />
         <link rel="manifest" href="/manifest.json" />
 
-        {/* LinkedIn-style Theme Colors */}
-        <meta name="theme-color" content="#0A66C2" />
-        <meta name="msapplication-TileColor" content="#0A66C2" />
-        <meta name="msapplication-navbutton-color" content="#0A66C2" />
+        {/* Brand Theme Colors */}
+        <meta name="theme-color" content="#C9A04A" />
+        <meta name="msapplication-TileColor" content="#020617" />
+        <meta name="msapplication-navbutton-color" content="#C9A04A" />
 
         {/* PWA Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="TrustBridge" />
-
-        {/* iOS Safari */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="ALWARD" />
         <meta name="apple-touch-fullscreen" content="yes" />
 
         {/* Viewport */}
@@ -176,29 +170,23 @@ function MyApp({ Component, pageProps }) {
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
         />
 
-        {/* Open Graph / Social Media */}
+        {/* Open Graph */}
         <meta property="og:type" content="website" />
-        <meta
-          property="og:title"
-          content="TrustBridge - Professional Career & Investment Platform"
-        />
+        <meta property="og:title" content="ALWARD — Your capital. Locked until the work is done." />
         <meta
           property="og:description"
-          content="AI-Powered CV Builder, Global Job Matching & Diaspora Investment Platform"
+          content="Milestone-gated USDC escrow on Solana. Ground agents physically verify startup progress before funds are released."
         />
-        <meta property="og:site_name" content="TrustBridge" />
+        <meta property="og:site_name" content="ALWARD" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="TrustBridge" />
-        <meta
-          name="twitter:description"
-          content="AI-Powered CV Builder, Global Job Matching & Diaspora Investment Platform"
-        />
+        <meta name="twitter:title" content="ALWARD" />
+        <meta name="twitter:description" content="Milestone-gated USDC escrow on Solana. Ground agents physically verify startup progress before funds are released." />
 
-        {/* Favicon */}
-        <link rel="icon" type="image/png" href="/trust.png" />
-        <link rel="apple-touch-icon" href="/trust.png" />
+        {/* Favicon — Official ALWARD Logo */}
+        <link rel="icon" type="image/png" href="/alward-logo.png" />
+        <link rel="apple-touch-icon" href="/alward-logo.png" />
       </Head>
       {coreApp}
     </>

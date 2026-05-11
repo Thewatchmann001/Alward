@@ -1,2 +1,1 @@
-# TrustBridge Backend Application
-
+# ALWARD - Application Entry Point

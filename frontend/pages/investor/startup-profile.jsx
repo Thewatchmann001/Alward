@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../../contexts/AuthContext";
 import StartupDetails from "../../investor/StartupDetails";
-import InvestFlow from "../../investor/InvestFlow";
+import EscrowInvest from "../../components/EscrowInvest";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -62,9 +62,8 @@ export default function StartupProfilePage() {
             >
               ← Back to Details
             </button>
-            <InvestFlow
-              startupId={id}
-              investorId={user?.id}
+            <EscrowInvest
+              startup={{ startup_id: id }}
               onSuccess={() => {
                 setShowInvestFlow(false);
                 router.push("/investor-platform");

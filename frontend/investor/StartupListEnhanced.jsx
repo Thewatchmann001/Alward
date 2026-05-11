@@ -1,12 +1,7 @@
-/**
- * Enhanced Startup List Component
- * Features: Search, Filter by 7+ industries, Sort options, Glassmorphism design
- */
 import { useState, useEffect, useMemo } from "react";
 import { Search, Filter, TrendingUp, Shield, ArrowUpDown, DollarSign, Calendar } from "lucide-react";
 import StartupCard from "../components/StartupCard";
 import toast from "react-hot-toast";
-import { motion } from "framer-motion";
 
 const INDUSTRIES = [
   { value: "all", label: "All Industries" },
@@ -21,10 +16,9 @@ const INDUSTRIES = [
 ];
 
 const SORT_OPTIONS = [
-  { value: "newest", label: "Newest First", icon: Calendar },
-  { value: "most_funded", label: "Most Funded", icon: TrendingUp },
-  { value: "largest_goal", label: "Largest Goal", icon: DollarSign },
-  { value: "highest_credibility", label: "Highest Credibility", icon: Shield },
+  { value: "newest", label: "Newest First" },
+  { value: "most_funded", label: "Most Funded" },
+  { value: "highest_credibility", label: "Highest Credibility" },
 ];
 
 export default function StartupListEnhanced({ onStartupSelect }) {
@@ -62,39 +56,27 @@ export default function StartupListEnhanced({ onStartupSelect }) {
     }
   };
 
-  // Enhanced search - searches name, description, and sector
   const filteredAndSortedStartups = useMemo(() => {
     let filtered = startups.filter((startup) => {
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
         startup.name?.toLowerCase().includes(searchLower) ||
         startup.description?.toLowerCase().includes(searchLower) ||
-        startup.sector?.toLowerCase().includes(searchLower) ||
-        startup.mission?.toLowerCase().includes(searchLower) ||
-        startup.products_services?.toLowerCase().includes(searchLower);
+        startup.sector?.toLowerCase().includes(searchLower);
       
       const matchesCredibility = (startup.credibility_score || 0) >= minCredibility;
       
       return matchesSearch && matchesCredibility;
     });
 
-    // Sort startups
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "newest":
           return new Date(b.created_at || 0) - new Date(a.created_at || 0);
         case "most_funded":
-          const aFunded = a.total_investments || 0;
-          const bFunded = b.total_investments || 0;
-          return bFunded - aFunded;
-        case "largest_goal":
-          const aGoal = a.funding_goal || 0;
-          const bGoal = b.funding_goal || 0;
-          return bGoal - aGoal;
+          return (b.total_investments || 0) - (a.total_investments || 0);
         case "highest_credibility":
-          const aCred = a.credibility_score || 0;
-          const bCred = b.credibility_score || 0;
-          return bCred - aCred;
+          return (b.credibility_score || 0) - (a.credibility_score || 0);
         default:
           return 0;
       }
@@ -104,78 +86,44 @@ export default function StartupListEnhanced({ onStartupSelect }) {
   }, [startups, searchTerm, minCredibility, sortBy]);
 
   return (
-    <div className="startup-list-enhanced">
-      {/* Header with Premium Card Styling */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="card-premium bg-gradient-to-r from-sky-50 to-amber-50 border-2 border-sky-200 rounded-2xl p-6 mb-6 shadow-lg"
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-3xl font-bold text-slate-900">Verify & Invest in Startups</h2>
-          <div className="flex items-center gap-2 bg-emerald-100 px-4 py-2 rounded-lg border border-emerald-300">
-            <Shield className="w-5 h-5 text-emerald-700" />
-            <span className="text-sm font-bold text-emerald-900">Blockchain Verified</span>
-          </div>
-        </div>
-
-        {/* Enhanced Search Bar */}
-        <div className="mb-4">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-600 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search by name, description, or industry..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-500 font-medium focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-
-        {/* Filters and Sort */}
-        <div className="flex flex-wrap gap-4">
-          {/* Industry Filter */}
+    <div className="space-y-6">
+      {/* Filter Bar */}
+      <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+        <div className="flex flex-wrap items-end gap-5">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-bold text-slate-900 mb-2">Industry</label>
+            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Industry</label>
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-600 w-4 h-4" />
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <select
                 value={filterSector}
                 onChange={(e) => setFilterSector(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full pl-9 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-800 text-[13px] font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all appearance-none"
               >
-                {INDUSTRIES.map((industry) => (
-                  <option key={industry.value} value={industry.value} className="bg-white">
-                    {industry.label}
-                  </option>
+                {INDUSTRIES.map((ind) => (
+                  <option key={ind.value} value={ind.value}>{ind.label}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Sort Options */}
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-bold text-slate-900 mb-2">Sort By</label>
+            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Sort By</label>
             <div className="relative">
-              <ArrowUpDown className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-600 w-4 h-4" />
+              <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full pl-9 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-800 text-[13px] font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all appearance-none"
               >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value} className="bg-white">
-                    {option.label}
-                  </option>
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Credibility Filter */}
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-bold text-slate-900 mb-2">
+            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
               Min Credibility: {minCredibility}%
             </label>
             <input
@@ -184,55 +132,32 @@ export default function StartupListEnhanced({ onStartupSelect }) {
               max="100"
               value={minCredibility}
               onChange={(e) => setMinCredibility(Number(e.target.value))}
-              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+              className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
             />
           </div>
         </div>
-
-        {/* Results Count */}
-        <div className="mt-4 text-sm font-semibold text-slate-700">
-          Showing {filteredAndSortedStartups.length} of {startups.length} startups
+        
+        <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center text-[12px] font-medium text-slate-500">
+          <span>Showing {filteredAndSortedStartups.length} of {startups.length} startups</span>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Startup Grid with Glassmorphism Cards */}
+      {/* Grid */}
       {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-xl p-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
-            <p className="text-slate-700 font-semibold mt-4">Loading startups...</p>
-          </div>
+        <div className="flex justify-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
         </div>
       ) : filteredAndSortedStartups.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAndSortedStartups.map((startup, index) => (
-            <motion.div
-              key={startup.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              onClick={() => onStartupSelect && onStartupSelect(startup)}
-              className="cursor-pointer"
-            >
-              <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl">
-                <StartupCard startup={startup} />
-              </div>
-            </motion.div>
+          {filteredAndSortedStartups.map((startup) => (
+            <div key={startup.id} onClick={() => onStartupSelect && onStartupSelect(startup)}>
+              <StartupCard startup={startup} />
+            </div>
           ))}
         </div>
       ) : (
-        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-12 text-center">
-          <p className="text-slate-700 font-semibold text-lg">No startups found matching your criteria</p>
-          <button
-            onClick={() => {
-              setSearchTerm("");
-              setFilterSector("all");
-              setMinCredibility(0);
-            }}
-            className="mt-4 text-blue-400 hover:text-blue-300 underline"
-          >
-            Clear filters
-          </button>
+        <div className="text-center py-20 bg-white rounded-2xl border border-slate-100">
+          <p className="text-slate-500 font-medium">No startups found matching criteria</p>
         </div>
       )}
     </div>

@@ -8,7 +8,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // TrustBridge Premium Color Palette
+        // ALWARD Premium Color Palette
         // Primary - Deep Ocean Blue (Slate)
         slate: {
           50: '#F8FAFC',
@@ -150,11 +150,26 @@ module.exports = {
             500: '#10B981',
             600: '#059669',
           },
+        },
+        alward: {
+          blue: '#2563eb',
+          cyan: '#06b6d4',
+          emerald: '#10b981',
+          slate: '#0f172a',
+          dark: '#020617',
+          black: '#000000',
+          // Official brand colors from logo
+          gold: '#C9A04A',
+          'gold-light': '#E8C97A',
+          'gold-dark': '#A07A30',
+          charcoal: '#1E1E1E',
+          'charcoal-light': '#2B2B2B',
         }
       },
       fontFamily: {
-        sans: ['Inter', 'SF Pro Display', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        display: ['Inter', 'SF Pro Display', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        sans: ['Outfit', 'Inter', 'sans-serif'],
+        display: ['Outfit', 'Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       backdropBlur: {
         xs: '2px',
@@ -178,9 +193,11 @@ module.exports = {
         'scale-out': 'scaleOut 0.3s ease-out',
         'fade-up': 'fadeUp 0.6s ease-out',
         'fade-down': 'fadeDown 0.6s ease-out',
-        'slide-fade': 'slideFade 0.5s ease-out',
-        'wave': 'wave 2s ease-in-out infinite',
-        'ripple': 'ripple 1.5s ease-out infinite',
+        slide_fade: 'slideFade 0.5s ease-out',
+        wave: 'wave 2s ease-in-out infinite',
+        ripple: 'ripple 1.5s ease-out infinite',
+        'spin-slow': 'spin 8s linear infinite',
+        'tilt': 'tilt 10s infinite linear',
       },
       keyframes: {
         fadeIn: {
@@ -251,6 +268,11 @@ module.exports = {
         ripple: {
           '0%': { transform: 'scale(0.8)', opacity: '1' },
           '100%': { transform: 'scale(2.4)', opacity: '0' },
+        },
+        tilt: {
+          '0%, 50%, 100%': { transform: 'rotate3d(0, 0, 0, 0deg)' },
+          '25%': { transform: 'rotate3d(1, 1, 0, 5deg)' },
+          '75%': { transform: 'rotate3d(-1, 1, 0, -5deg)' },
         },
       },
     },

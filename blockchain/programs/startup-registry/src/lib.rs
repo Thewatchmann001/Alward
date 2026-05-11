@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("DqwhC5DDZZmL4E1f4YYQJ9R121NurZV8ttk2dfGoYnTj");
+declare_id!("7caediXMm5C4vNg2yLD9rD176x7kAS7JBU3d2zigKFvw");
 
 // Certificate Registry Program ID (for on-chain verification)
 use anchor_lang::solana_program::pubkey;

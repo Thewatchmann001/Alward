@@ -1,5 +1,5 @@
 {
-  "name": "trustbridge-frontend",
+  "name": "alward-frontend",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@farcaster/mini-app-solana": "^2.0.0",
     "@privy-io/react-auth": "^3.12.0",
     "@solana-program/memo": "^0.10.0",
     "@solana/spl-token": "^0.4.14",

@@ -1,34 +1,34 @@
 """
-Custom exceptions for TrustBridge backend
+Custom exceptions for ALWARD backend
 """
 
 
-class TrustBridgeException(Exception):
-    """Base exception for TrustBridge application."""
+class AlwardException(Exception):
+    """Base exception for ALWARD application."""
     pass
 
 
-class BlockchainError(TrustBridgeException):
+class BlockchainError(AlwardException):
     """Exception raised for blockchain-related errors."""
     pass
 
 
-class AIServiceError(TrustBridgeException):
+class AIServiceError(AlwardException):
     """Exception raised for AI service errors."""
     pass
 
 
-class ValidationError(TrustBridgeException):
+class ValidationError(AlwardException):
     """Exception raised for validation errors."""
     pass
 
 
-class AuthenticationError(TrustBridgeException):
+class AuthenticationError(AlwardException):
     """Exception raised for authentication errors."""
     pass
 
 
-class AuthorizationError(TrustBridgeException):
+class AuthorizationError(AlwardException):
     """Exception raised for authorization errors."""
     pass
 
@@ -38,6 +38,6 @@ class InvalidCredentials(AuthenticationError):
     pass
 
 
-class UserNotFound(TrustBridgeException):
+class UserNotFound(AlwardException):
     """Exception raised when user is not found."""
     pass

@@ -1,7 +1,3 @@
-/**
- * Startup Dashboard
- * Shows verification status, funding progress, and startup management
- */
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../contexts/AuthContext";
@@ -9,6 +5,7 @@ import Chat from "../components/Chat";
 import CredibilityImprovement from "../investor/CredibilityImprovement";
 import AttestationStatus from "../components/attestation/AttestationStatus";
 import VerificationFlow from "../components/attestation/VerificationFlow";
+import MilestoneManager from "../components/startup/MilestoneManager";
 import {
   Shield,
   TrendingUp,
@@ -16,17 +13,21 @@ import {
   Users,
   CheckCircle,
   Clock,
-  XCircle,
   FileText,
   Edit,
   MessageSquare,
   ArrowLeft,
   Target,
   ExternalLink,
+  Zap,
+  Globe,
+  ArrowRight,
+  Database,
+  Lock,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
-import BackgroundImage from "../components/BackgroundImage";
+import Logo from "../components/Logo";
 
 export default function StartupDashboard() {
   const router = useRouter();
@@ -39,45 +40,37 @@ export default function StartupDashboard() {
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [conversationsLoading, setConversationsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (!isAuthenticated) {
       router.push("/login");
       return;
     }
     if (user?.id) {
-    fetchStartupData();
+      fetchStartupData();
     }
-  }, [isAuthenticated, user?.id]); // Removed router from deps, added user?.id
+  }, [isAuthenticated, user?.id]);
 
   const fetchStartupData = async () => {
-    if (!user?.id) return; // Guard clause
-    
+    if (!user?.id) return;
     try {
       setLoading(true);
-      // Fetch startup by founder/user ID
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      const response = await fetch(
-        `${apiUrl}/api/startups/by-founder/${user.id}`,
-      );
+      const response = await fetch(`${apiUrl}/api/startups/by-founder/${user.id}`);
       if (response.ok) {
         const data = await response.json();
         setStartup(data);
-
-        // Calculate funding progress
         if (data.funding_goal && data.total_investments) {
           const progress = (data.total_investments / data.funding_goal) * 100;
           setFundingProgress(Math.min(100, progress));
         }
       } else if (response.status === 404) {
-        // No startup found - redirect to onboarding
-        console.log("No startup found, redirecting to onboarding...");
         router.push("/startup-onboarding");
-        return;
       }
     } catch (error) {
-      toast.error("Failed to load startup data");
-      console.error(error);
+      toast.error("Protocol Sync Failed.");
     } finally {
       setLoading(false);
     }
@@ -87,17 +80,13 @@ export default function StartupDashboard() {
     try {
       setConversationsLoading(true);
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      const response = await fetch(
-        `${apiUrl}/api/conversations/user/${user?.id}`,
-      );
-
+      const response = await fetch(`${apiUrl}/api/conversations/user/${user?.id}`);
       if (response.ok) {
         const data = await response.json();
         setConversations(data || []);
       }
     } catch (error) {
-      console.error("Error loading conversations:", error);
-      toast.error("Failed to load messages");
+      console.error("Chat sync failed:", error);
     } finally {
       setConversationsLoading(false);
     }
@@ -109,550 +98,242 @@ export default function StartupDashboard() {
     }
   }, [activeTab, user?.id]);
 
-  const getVerificationStatus = () => {
-    if (!startup)
-      return {
-        status: "pending",
-        label: "Pending",
-        icon: Clock,
-        color: "yellow",
-      };
-
-    if (startup.transaction_signature) {
-      return {
-        status: "verified",
-        label: "Verified",
-        icon: CheckCircle,
-        color: "green",
-      };
-    }
-    return {
-      status: "pending",
-      label: "Pending Verification",
-      icon: Clock,
-      color: "yellow",
-    };
-  };
-
-  if (!isAuthenticated || loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
-      </div>
-    );
-  }
-
-  if (!startup) {
-    return null; // Will redirect to onboarding
-  }
-
-  const verification = getVerificationStatus();
-  const StatusIcon = verification.icon;
+  if (!mounted || loading || !startup) return (
+    <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-alward-blue border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header Section with Background */}
-      <BackgroundImage
-        src="/images/backgrounds/hero/startup-dashboard-hero.jpg"
-        alt="Startup Dashboard - TrustBridge"
-        overlay="default"
-        className="h-64 flex-shrink-0"
-        priority={true}
-      >
-        <div className="max-w-7xl mx-auto px-6 py-12 h-full flex items-end">
-          <div className="w-full flex justify-between items-end">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-                {startup.name}
-              </h1>
-              <p className="text-xl text-white font-semibold mb-2">
-                {startup.sector} • {startup.country}
-              </p>
-              <p className="text-white text-sm font-mono font-semibold">
-                ID: {startup.startup_id || "N/A"}
-              </p>
-            </div>
+    <div className="min-h-screen bg-[#020617] text-white font-sans selection:bg-alward-blue/30">
+      {/* Background elements */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-alward-blue/5 blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-alward-emerald/5 blur-[120px]"></div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="sticky top-0 z-50 bg-[#020617]/80 backdrop-blur-xl border-b border-white/5 px-8 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <Logo size="medium" />
+          <div className="flex items-center gap-6">
             <button
               onClick={() => router.push("/startup-onboarding")}
-              className="btn-secondary text-white border-white/30 hover:border-white/50 hover:bg-white/10"
+              className="px-6 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-colors flex items-center gap-2"
             >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Profile
+              <Edit size={14} /> Update Node
             </button>
-          </div>
-        </div>
-      </BackgroundImage>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Tab Navigation */}
-        <div className="flex gap-4 mb-8 border-b border-slate-200">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`px-4 py-2 flex items-center gap-2 transition-colors ${
-              activeTab === "overview"
-                ? "text-amber-600 border-b-2 border-amber-600 font-semibold"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveTab("improve")}
-            className={`px-4 py-2 flex items-center gap-2 transition-colors ${
-              activeTab === "improve"
-                ? "text-amber-600 border-b-2 border-amber-600 font-semibold"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <Target className="w-4 h-4" />
-            Improve Credibility
-          </button>
-          <button
-            onClick={() => setActiveTab("verification")}
-            className={`px-4 py-2 flex items-center gap-2 transition-colors ${
-              activeTab === "verification"
-                ? "text-amber-600 border-b-2 border-amber-600 font-semibold"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <Shield className="w-4 h-4" />
-            Verification
-          </button>
-          <button
-            onClick={() => setActiveTab("messages")}
-            className={`px-4 py-2 flex items-center gap-2 transition-colors ${
-              activeTab === "messages"
-                ? "text-amber-600 border-b-2 border-amber-600 font-semibold"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <MessageSquare className="w-4 h-4" />
-            Messages
-          </button>
-        </div>
-
-        {/* Improve Credibility Tab */}
-        {activeTab === "improve" && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-8"
-          >
-            <CredibilityImprovement
-              startup={startup}
-              onUpdate={fetchStartupData}
-            />
-          </motion.div>
-        )}
-
-        {/* Verification Tab */}
-        {activeTab === "verification" && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-8"
-          >
-            {/* Existing Attestations */}
-            {user?.id && (
-              <AttestationStatus
-                userId={user.id}
-                walletAddress={solanaAddress}
-                onUpdate={fetchStartupData}
-              />
-            )}
-
-            {/* Request New Verification */}
-            {user && (
-              <VerificationFlow
-                user={user}
-                onComplete={() => {
-                  // Refresh startup data and attestations after verification
-                  fetchStartupData();
-                }}
-              />
-            )}
-          </motion.div>
-        )}
-
-        {/* Messages Tab */}
-        {activeTab === "messages" && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            {/* Conversations List */}
-            <div className="lg:col-span-1 card overflow-hidden">
-              <div className="p-4 border-b border-slate-200">
-                <h3 className="text-lg font-bold text-slate-900">
-                  Conversations
-                </h3>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-alward-blue to-alward-emerald p-[1px]">
+              <div className="w-full h-full rounded-full bg-[#020617] flex items-center justify-center font-black italic text-xs uppercase">
+                {startup.name.substring(0, 2)}
               </div>
-              {conversationsLoading ? (
-                <div className="p-4 text-center text-slate-600">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-600 mx-auto"></div>
-                </div>
-              ) : conversations.length === 0 ? (
-                <div className="p-4 text-center text-slate-600">
-                  <MessageSquare className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                  <p className="text-sm">No conversations yet</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-100 max-h-96 overflow-y-auto">
-                  {conversations.map((conversation) => (
-                    <button
-                      key={conversation.id}
-                      onClick={() => setSelectedConversation(conversation)}
-                      className={`w-full p-4 text-left transition ${
-                        selectedConversation?.id === conversation.id
-                          ? "bg-amber-50 border-l-2 border-amber-600"
-                          : "hover:bg-slate-50"
-                      }`}
-                    >
-                      <div className="text-sm font-medium text-slate-900 truncate">
-                        {conversation.investor_id === user?.id
-                          ? conversation.startup_name
-                          : conversation.investor_name}
-                      </div>
-                      <div className="text-xs text-slate-500 mt-1">
-                        {conversation.last_message_preview}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Chat View */}
-            <div
-              className="lg:col-span-3 card overflow-hidden flex flex-col"
-              style={{ height: "600px" }}
-            >
-              {selectedConversation ? (
-                <>
-                  <div className="p-4 border-b border-slate-200 flex items-center gap-2">
-                    <button
-                      onClick={() => setSelectedConversation(null)}
-                      className="text-slate-600 hover:text-slate-900 transition-colors"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                    </button>
-                    <h3 className="text-lg font-bold text-slate-900">
-                      {selectedConversation.investor_id === user?.id
-                        ? selectedConversation.startup_name
-                        : selectedConversation.investor_name}
-                    </h3>
-                  </div>
-                  <div className="flex-1 overflow-hidden">
-                    <Chat
-                      investorId={selectedConversation.investor_id}
-                      startupId={selectedConversation.startup_id}
-                      currentUserId={user?.id}
-                      onClose={() => setSelectedConversation(null)}
-                    />
-                  </div>
-                </>
-              ) : (
-                <div className="h-full flex items-center justify-center text-slate-600">
-                  <div className="text-center">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-2 text-slate-300" />
-                    <p>Select a conversation to view messages</p>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
-        )}
+        </div>
+      </nav>
 
-        {/* Overview Tab */}
-        {activeTab === "overview" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Verification Status */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="card"
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-slate-900">
-                    Verification Status
-                  </h2>
-                  <StatusIcon
-                    className={`w-6 h-6 ${
-                      verification.color === "green"
-                        ? "text-sky-600"
-                        : "text-amber-600"
-                    }`}
-                  />
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-600">
-                      On-Chain Verification
-                    </span>
-                    <span
-                      className={`font-semibold ${
-                        verification.color === "green"
-                          ? "text-sky-600"
-                          : "text-amber-600"
-                      }`}
-                    >
-                      {verification.label}
-                    </span>
+      <main className="relative z-10 max-w-7xl mx-auto px-8 py-12">
+        {/* Node Header */}
+        <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-alward-blue mb-2">Primary Truth Node</h2>
+            <h1 className="text-5xl md:text-6xl font-black uppercase italic tracking-tighter leading-none mb-4">{startup.name}</h1>
+            <div className="flex items-center gap-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
+              <span className="flex items-center gap-1"><Globe size={14} className="text-alward-emerald" /> {startup.country}</span>
+              <span className="w-1 h-1 rounded-full bg-slate-700"></span>
+              <span>{startup.sector}</span>
+            </div>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex gap-4">
+            <div className={`glass-card-premium px-8 py-4 rounded-2xl border-l-4 ${startup.status === 'pending' ? 'border-yellow-500' : startup.status === 'rejected' ? 'border-red-500' : 'border-alward-emerald'}`}>
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-1">Status</span>
+              <span className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+                {startup.status === 'pending' ? (
+                  <><Clock size={14} className="text-yellow-500" /> Pending Admin Approval</>
+                ) : startup.status === 'rejected' ? (
+                  <><Clock size={14} className="text-red-500" /> Rejected</>
+                ) : (
+                  <><CheckCircle size={14} className="text-alward-emerald" /> Synchronized</>
+                )}
+              </span>
+            </div>
+            <div className="glass-card-premium px-8 py-4 rounded-2xl border-l-4 border-alward-blue">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-1">Risk Score</span>
+              <span className="text-sm font-black text-white uppercase tracking-widest">{startup.credibility_score?.toFixed(1) || "A+"}</span>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex overflow-x-auto gap-2 mb-12 no-scrollbar pb-2">
+          {[
+            { id: "overview", icon: TrendingUp, label: "Overview" },
+            { id: "improve", icon: Target, label: "Credibility" },
+            { id: "verification", icon: Shield, label: "Verifiers" },
+            { id: "milestones", icon: Database, label: "Truth Ledger" },
+            { id: "messages", icon: MessageSquare, label: "Neural Link" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-8 py-4 rounded-2xl flex items-center gap-3 transition-all whitespace-nowrap text-[10px] font-black uppercase tracking-widest border ${
+                activeTab === tab.id
+                  ? "bg-alward-blue border-alward-blue text-white shadow-[0_0_20px_rgba(37,99,235,0.3)]"
+                  : "bg-white/5 border-white/5 text-slate-500 hover:bg-white/10"
+              }`}
+            >
+              <tab.icon size={16} />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content Area */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-12"
+          >
+            {activeTab === "overview" && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-8">
+                  {/* Funding Module */}
+                  <div className="glass-card-premium p-10 rounded-[2.5rem]">
+                    <div className="flex items-center justify-between mb-8">
+                      <h3 className="text-sm font-black uppercase tracking-[0.3em] text-alward-blue">Funding Deployment</h3>
+                      <DollarSign className="text-slate-700" />
+                    </div>
+                    <div className="space-y-6">
+                      <div className="flex justify-between items-baseline">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-5xl font-black italic tracking-tighter">${(startup.total_investments || 0).toLocaleString()}</span>
+                          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Raised</span>
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Goal: ${(startup.funding_goal || 0).toLocaleString()}</span>
+                      </div>
+                      <div className="h-4 bg-white/5 rounded-full overflow-hidden p-[2px] border border-white/5">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${fundingProgress}%` }}
+                          className="h-full bg-gradient-to-r from-alward-blue to-alward-emerald rounded-full"
+                        />
+                      </div>
+                      <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                        <span className="text-alward-emerald">{fundingProgress.toFixed(1)}% Deployed</span>
+                        <span className="text-slate-500">{startup.investor_count || 0} Backers</span>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Node Identity */}
+                  <div className="glass-card-premium p-10 rounded-[2.5rem] space-y-8">
+                    <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-500">About Truth Node</h3>
+                    <div className="space-y-6">
+                      <div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-alward-blue block mb-2">Mission Directive</span>
+                        <p className="text-slate-300 leading-relaxed font-medium">{startup.mission || startup.description}</p>
+                      </div>
+                      {startup.vision && (
+                        <div>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-alward-emerald block mb-2">Future Projection</span>
+                          <p className="text-slate-300 leading-relaxed font-medium">{startup.vision}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-8">
+                  {/* Performance Metrics */}
+                  <div className="glass-card-premium p-10 rounded-[2.5rem] space-y-8">
+                    <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-500">Live Metrics</h3>
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Neural Network Size</span>
+                        <span className="text-lg font-black italic">{startup.team_size || 0}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Verification Level</span>
+                        <span className="text-lg font-black italic text-alward-blue">Tier 1</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Blockchain Link */}
                   {startup.transaction_signature && (
-                    <div className="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                      <p className="text-slate-600 text-sm mb-2">
-                        Transaction Signature
-                      </p>
-                      <p className="text-slate-900 font-mono text-xs break-all mb-3">
-                        {startup.transaction_signature.substring(0, 20)}...
-                      </p>
+                    <div className="glass-card-premium p-10 rounded-[2.5rem] border-t-2 border-alward-blue bg-alward-blue/5">
+                      <Lock className="text-alward-blue mb-4" size={24} />
+                      <h3 className="text-[10px] font-black uppercase tracking-widest text-white mb-2">Immutable Hash</h3>
+                      <p className="text-[10px] font-mono text-slate-500 break-all mb-6">{startup.transaction_signature}</p>
                       <a
                         href={`https://explorer.solana.com/tx/${startup.transaction_signature}?cluster=devnet`}
                         target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        className="btn-alward-primary w-full py-4 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
                       >
-                        <ExternalLink size={14} />
-                        View on Explorer
-                      </a>
-                    </div>
-                  )}
-                  {verification.status === "pending" && (
-                    <p className="text-slate-600 text-sm mt-4">
-                      Your startup is being verified on the blockchain. This
-                      usually takes a few minutes.
-                    </p>
-                  )}
-                </div>
-              </motion.div>
-
-              {/* Attestation Status */}
-              {user?.id && (
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.05 }}
-                >
-                  <AttestationStatus
-                    userId={user.id}
-                    walletAddress={solanaAddress}
-                    onUpdate={fetchStartupData}
-                  />
-                </motion.div>
-              )}
-
-              {/* Funding Progress */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-                className="card"
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-slate-900">
-                    Funding Progress
-                  </h2>
-                  <DollarSign className="w-6 h-6 text-sky-600" />
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-slate-600 mb-2">
-                      <span>Raised</span>
-                      <span className="font-semibold text-slate-900">
-                        ${(startup.total_investments || 0).toLocaleString()}{" "}
-                        USDC
-                      </span>
-                    </div>
-                    <div className="w-full h-4 bg-slate-200 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${fundingProgress}%` }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full bg-gradient-to-r from-sky-500 to-sky-600"
-                      />
-                    </div>
-                    <div className="flex justify-between text-slate-600 text-sm mt-2">
-                      <span>{fundingProgress.toFixed(1)}% Complete</span>
-                      <span>
-                        Goal: ${(startup.funding_goal || 0).toLocaleString()}{" "}
-                        USDC
-                      </span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 mt-6">
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                      <p className="text-slate-600 text-sm">
-                        Total Investments
-                      </p>
-                      <p className="text-2xl font-bold text-slate-900 mt-1">
-                        {startup.investment_count || 0}
-                      </p>
-                    </div>
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                      <p className="text-slate-600 text-sm">Investors</p>
-                      <p className="text-2xl font-bold text-slate-900 mt-1">
-                        {startup.investor_count || 0}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Startup Details */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-                className="card"
-              >
-                <h2 className="text-2xl font-bold text-slate-900 mb-6">
-                  About
-                </h2>
-                <div className="space-y-4 text-slate-700">
-                  <div>
-                    <h3 className="text-slate-900 font-semibold mb-2">
-                      Description
-                    </h3>
-                    <p>{startup.description}</p>
-                  </div>
-                  {startup.mission && (
-                    <div>
-                      <h3 className="text-slate-900 font-semibold mb-2">
-                        Mission
-                      </h3>
-                      <p>{startup.mission}</p>
-                    </div>
-                  )}
-                  {startup.vision && (
-                    <div>
-                      <h3 className="text-slate-900 font-semibold mb-2">
-                        Vision
-                      </h3>
-                      <p>{startup.vision}</p>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-8">
-              {/* Quick Stats */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="card"
-              >
-                <h2 className="text-xl font-bold text-slate-900 mb-6">
-                  Quick Stats
-                </h2>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <Users className="w-5 h-5" />
-                      <span>Team Size</span>
-                    </div>
-                    <span className="text-slate-900 font-semibold">
-                      {startup.team_size || 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <TrendingUp className="w-5 h-5" />
-                      <span>Credibility Score</span>
-                    </div>
-                    <span className="text-slate-900 font-semibold">
-                      {startup.credibility_score?.toFixed(1) || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <Shield className="w-5 h-5" />
-                      <span>Verified Employees</span>
-                    </div>
-                    <span className="text-slate-900 font-semibold">
-                      {startup.employees_verified || 0}
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Contact Info */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-                className="card"
-              >
-                <h2 className="text-xl font-bold text-slate-900 mb-6">
-                  Contact
-                </h2>
-                <div className="space-y-3 text-slate-700">
-                  {startup.contact_email && (
-                    <div>
-                      <p className="text-sm text-slate-600">Email</p>
-                      <p className="text-slate-900">{startup.contact_email}</p>
-                    </div>
-                  )}
-                  {startup.phone && (
-                    <div>
-                      <p className="text-sm text-slate-600">Phone</p>
-                      <p className="text-slate-900">{startup.phone}</p>
-                    </div>
-                  )}
-                  {startup.website && (
-                    <div>
-                      <p className="text-sm text-slate-600">Website</p>
-                      <a
-                        href={startup.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sky-600 hover:text-sky-700 underline transition-colors"
-                      >
-                        {startup.website}
-                      </a>
-                    </div>
-                  )}
-                  {startup.pitch_deck_url && (
-                    <div>
-                      <p className="text-sm text-slate-600">Pitch Deck</p>
-                      <a
-                        href={startup.pitch_deck_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sky-600 hover:text-sky-700 underline flex items-center gap-2 transition-colors"
-                      >
-                        <FileText className="w-4 h-4" />
-                        View Pitch Deck
+                        <ExternalLink size={14} /> Explorer
                       </a>
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </div>
+            )}
 
-              {/* Wallet Info */}
-              {solanaAddress && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="card"
-                >
-                  <h2 className="text-xl font-bold text-slate-900 mb-4">
-                    Wallet
-                  </h2>
-                  <p className="text-slate-600 text-sm mb-2">Solana Address</p>
-                  <p className="text-slate-900 font-mono text-xs break-all">
-                    {solanaAddress}
-                  </p>
-                </motion.div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+            {activeTab === "improve" && <CredibilityImprovement startup={startup} onUpdate={fetchStartupData} />}
+            {activeTab === "verification" && (
+              <div className="space-y-12">
+                <AttestationStatus userId={user.id} walletAddress={solanaAddress} onUpdate={fetchStartupData} />
+                <VerificationFlow user={user} onComplete={fetchStartupData} />
+              </div>
+            )}
+            {activeTab === "milestones" && <MilestoneManager startupId={startup.id} />}
+            {activeTab === "messages" && (
+              <div className="glass-card-premium rounded-[3rem] overflow-hidden flex flex-col h-[700px]">
+                {selectedConversation ? (
+                  <div className="flex flex-col h-full">
+                    <div className="p-8 border-b border-white/5 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <button onClick={() => setSelectedConversation(null)} className="text-slate-500 hover:text-white"><ArrowLeft /></button>
+                        <h3 className="text-xl font-black uppercase italic tracking-tighter">
+                          {selectedConversation.investor_name}
+                        </h3>
+                      </div>
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <Chat investorId={selectedConversation.investor_id} startupId={selectedConversation.startup_id} currentUserId={user?.id} onClose={() => setSelectedConversation(null)} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex h-full">
+                    <div className="w-full md:w-1/3 border-r border-white/5 overflow-y-auto">
+                      <div className="p-8 border-b border-white/5"><h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Neural Links</h3></div>
+                      {conversationsLoading ? <div className="p-8 text-center animate-pulse text-slate-500">Syncing...</div> : conversations.length === 0 ? <div className="p-8 text-center text-slate-500">No active links</div> : (
+                        <div className="divide-y divide-white/5">
+                          {conversations.map(c => (
+                            <button key={c.id} onClick={() => setSelectedConversation(c)} className="w-full p-8 text-left hover:bg-white/[0.02] transition-colors group">
+                              <div className="font-black uppercase italic text-sm mb-1 group-hover:text-alward-blue transition-colors">{c.investor_name}</div>
+                              <div className="text-[10px] text-slate-500 truncate uppercase tracking-widest">{c.last_message_preview}</div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="hidden md:flex flex-1 items-center justify-center text-slate-700 bg-white/[0.01]">
+                      <div className="text-center">
+                        <MessageSquare size={48} className="mx-auto mb-4 opacity-10" />
+                        <p className="text-[10px] font-black uppercase tracking-widest">Select Node for Secure Communication</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </main>
     </div>
   );
 }
+

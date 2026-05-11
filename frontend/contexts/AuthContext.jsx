@@ -22,8 +22,8 @@ const usePrivyAuthSafe = () => {
   }
 };
 
-const PENDING_ROLE_STORAGE_KEY = "trustbridge_pending_role";
-const ROLE_MISMATCH_MESSAGE_KEY = "trustbridge_role_mismatch_message";
+const PENDING_ROLE_STORAGE_KEY = "alward_pending_role";
+const ROLE_MISMATCH_MESSAGE_KEY = "alward_role_mismatch_message";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -91,13 +91,18 @@ export const AuthProvider = ({ children }) => {
             role = privyAuth.userRole;
           }
 
+          // Map frontend roles to backend enum values
+          let backendRole = role;
+          if (role === 'startup') backendRole = 'founder';
+          if (role === 'ground agent') backendRole = 'enumerator';
+
           // Sync with backend
           const syncData = {
             privy_id: privyUser.id,
             email: email,
             full_name: privyUser.name || email.split('@')[0],
             wallet_address: solanaWallet?.address || solanaWallet || null,
-            role: role,
+            role: backendRole,
           };
 
           console.log('📤 Syncing with backend:', { email, role, wallet: syncData.wallet_address });
@@ -195,24 +200,16 @@ export const AuthProvider = ({ children }) => {
               console.log('💾 Stored role mismatch message for toast:', toastMessage);
             }
             
-            // AUTO-LOGOUT: Immediately logout from Privy to reset auth state
-            console.log('🔄 Auto-logging out from Privy due to role mismatch...');
-            if (privyAuth && privyAuth.logout) {
-              try {
-                await privyAuth.logout();
-                console.log('✅ Privy logout completed');
-              } catch (logoutErr) {
-                console.error('⚠️ Privy logout error (non-fatal):', logoutErr);
-                // Continue even if Privy logout fails
-              }
-            }
+            // DO NOT auto-logout from Privy to preserve the global session
+            // Just clear local tokens and redirect
+            console.log('🔄 Role mismatch. Preserving Privy session but clearing local tokens.');
             
-            // Clear ALL auth state immediately
+            // Clear backend tokens so we can re-sync
             if (typeof window !== 'undefined') {
               localStorage.removeItem('token');
               localStorage.removeItem('user');
               localStorage.removeItem(PENDING_ROLE_STORAGE_KEY);
-              console.log('🧹 Cleared all auth state from localStorage');
+              console.log('🧹 Cleared all local auth state');
             }
             setToken(null);
             setUser(null);
@@ -434,8 +431,14 @@ export const AuthProvider = ({ children }) => {
 
   const switchRole = async (role) => {
     if (!token || !user) return { success: false, error: 'Not authenticated' };
+    
+    // Map frontend role to backend role
+    let backendRole = role;
+    if (role === 'startup') backendRole = 'founder';
+    if (role === 'ground agent') backendRole = 'enumerator';
+    
     try {
-      const res = await authAPI.switchRole(role);
+      const res = await authAPI.switchRole(backendRole);
       const data = res.data;
       const newToken = data.access_token;
       const activeRole = data.active_role || role;

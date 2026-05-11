@@ -12,6 +12,7 @@ class Investment(Base):
     investor_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     amount = Column(Float, nullable=False)  # USDC amount
     tx_signature = Column(String(88), nullable=False)  # Solana transaction signature
+    investment_id = Column(String(50), nullable=True) # ID used on-chain for the PDA
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

@@ -8,10 +8,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app.db.session import engine
 from app.db.base import Base
-from app.db.models import User, CV, Job, Startup, Investment, JobMatch, JobApplication
+from app.db.models import (
+    User, Startup, Investment, Employee, Attestation, 
+    Milestone, ValidationReport, GroundAgentApplication
+)
 
 def init_db():
-    print("🔧 Initializing TrustBridge database...")
+    print("Initializing TrustBridge database...")
     
     # Create all tables
     Base.metadata.create_all(bind=engine)
@@ -21,11 +24,11 @@ def init_db():
     inspector = inspect(engine)
     tables = inspector.get_table_names()
     
-    print(f"✅ Created {len(tables)} tables:")
+    print(f"Created {len(tables)} tables:")
     for table in tables:
-        print(f"   • {table}")
+        print(f"   - {table}")
     
-    print("\n🎉 Database ready!")
+    print("\nDatabase ready!")
 
 if __name__ == "__main__":
     init_db()

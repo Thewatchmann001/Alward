@@ -16,3 +16,41 @@
 2025-12-05 16:15:27 | INFO     | app.blockchain.certificate_client:issue_certificate - Certificate issued: CERT-FOU-2025-VL9IQ
 2025-12-05 16:15:27 | INFO     | app.blockchain.certificate_client:issue_certificate - Issuing certificate for Aminata Conteh from Fourah Bay College, University of Sierra Leone
 2025-12-05 16:15:31 | INFO     | app.blockchain.certificate_client:issue_certificate - Certificate issued: CERT-FOU-2025-0V3UL
+2026-05-06 19:43:31 | INFO     | app.services.attestation.attestation_service:__init__ - Initializing AttestationService in development mode
+2026-05-06 19:43:31 | WARNING  | app.services.attestation.real_adapters:__init__ - VerifyAdapter: Real implementation not yet configured
+2026-05-06 19:43:31 | WARNING  | app.services.attestation.real_adapters:__init__ - CivicAdapter: Real implementation not yet configured
+2026-05-06 19:43:31 | INFO     | app.services.attestation.attestation_service:__init__ - Using REAL verifier adapters (Civic/Verify)
+2026-05-06 19:43:31 | WARNING  | app.services.attestation.real_adapters:__init__ - Wallet not found at C:\Users\user/.config/solana/id.json. On-chain attestations may fail.
+2026-05-06 19:43:31 | INFO     | app.services.attestation.attestation_service:__init__ - Using REAL Solana adapter (cluster: devnet)
+2026-05-06 19:43:32 | INFO     | app.main:startup_event - Starting ALWARD Intelligence API v2.0.0
+2026-05-06 19:45:08 | INFO     | app.main:shutdown_event - Shutting down TrustBridge API
+2026-05-06 19:45:15 | INFO     | app.services.attestation.attestation_service:__init__ - Initializing AttestationService in development mode
+2026-05-06 19:45:15 | WARNING  | app.services.attestation.real_adapters:__init__ - VerifyAdapter: Real implementation not yet configured
+2026-05-06 19:45:15 | WARNING  | app.services.attestation.real_adapters:__init__ - CivicAdapter: Real implementation not yet configured
+2026-05-06 19:45:15 | INFO     | app.services.attestation.attestation_service:__init__ - Using REAL verifier adapters (Civic/Verify)
+2026-05-06 19:45:15 | WARNING  | app.services.attestation.real_adapters:__init__ - Wallet not found at C:\Users\user/.config/solana/id.json. On-chain attestations may fail.
+2026-05-06 19:45:15 | INFO     | app.services.attestation.attestation_service:__init__ - Using REAL Solana adapter (cluster: devnet)
+2026-05-06 19:45:16 | INFO     | app.main:startup_event - Starting ALWARD Intelligence API v2.0.0
+2026-05-06 19:56:22 | INFO     | app.main:shutdown_event - Shutting down TrustBridge API
+2026-05-06 19:56:38 | INFO     | app.services.attestation.attestation_service:__init__ - Initializing AttestationService in development mode
+2026-05-06 19:56:38 | WARNING  | app.services.attestation.real_adapters:__init__ - VerifyAdapter: Real implementation not yet configured
+2026-05-06 19:56:38 | WARNING  | app.services.attestation.real_adapters:__init__ - CivicAdapter: Real implementation not yet configured
+2026-05-06 19:56:38 | INFO     | app.services.attestation.attestation_service:__init__ - Using REAL verifier adapters (Civic/Verify)
+2026-05-06 19:56:38 | WARNING  | app.services.attestation.real_adapters:__init__ - Wallet not found at C:\Users\user/.config/solana/id.json. On-chain attestations may fail.
+2026-05-06 19:56:38 | INFO     | app.services.attestation.attestation_service:__init__ - Using REAL Solana adapter (cluster: devnet)
+2026-05-06 19:56:38 | INFO     | app.main:startup_event - Starting ALWARD Intelligence API v2.0.0
+2026-05-06 19:56:58 | INFO     | app.main:shutdown_event - Shutting down TrustBridge API
+2026-05-06 20:09:23 | INFO     | app.services.attestation.attestation_service:__init__ - Initializing AttestationService in development mode
+2026-05-06 20:09:23 | WARNING  | app.services.attestation.real_adapters:__init__ - VerifyAdapter: Real implementation not yet configured
+2026-05-06 20:09:23 | WARNING  | app.services.attestation.real_adapters:__init__ - CivicAdapter: Real implementation not yet configured
+2026-05-06 20:09:23 | INFO     | app.services.attestation.attestation_service:__init__ - Using REAL verifier adapters (Civic/Verify)
+2026-05-06 20:09:23 | WARNING  | app.services.attestation.real_adapters:__init__ - Wallet not found at C:\Users\user/.config/solana/id.json. On-chain attestations may fail.
+2026-05-06 20:09:23 | INFO     | app.services.attestation.attestation_service:__init__ - Using REAL Solana adapter (cluster: devnet)
+2026-05-06 20:09:23 | INFO     | app.main:startup_event - Starting ALWARD Intelligence API v2.0.0
+2026-05-07 12:32:05 | INFO     | app.services.attestation.attestation_service:__init__ - Initializing AttestationService in development mode
+2026-05-07 12:32:05 | WARNING  | app.services.attestation.real_adapters:__init__ - VerifyAdapter: Real implementation not yet configured
+2026-05-07 12:32:05 | WARNING  | app.services.attestation.real_adapters:__init__ - CivicAdapter: Real implementation not yet configured
+2026-05-07 12:32:05 | INFO     | app.services.attestation.attestation_service:__init__ - Using REAL verifier adapters (Civic/Verify)
+2026-05-07 12:32:05 | WARNING  | app.services.attestation.real_adapters:__init__ - Wallet not found at C:\Users\user/.config/solana/id.json. On-chain attestations may fail.
+2026-05-07 12:32:05 | INFO     | app.services.attestation.attestation_service:__init__ - Using REAL Solana adapter (cluster: devnet)
+2026-05-07 12:32:05 | INFO     | app.main:startup_event - Starting ALWARD Intelligence API v2.0.0

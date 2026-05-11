@@ -1,6 +1,6 @@
 """
 OAuth Authentication Endpoints
-Handles Google OAuth 2.0 authentication flow
+Handles Google OAuth 2.0 and Privy authentication flows
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import RedirectResponse
@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 import requests
 from urllib.parse import urlencode
 import secrets
+import jwt
+from jwt import PyJWTError
 
 from app.db.session import get_db
 from app.db.models import User, UserRole
@@ -232,3 +234,132 @@ async def google_oauth_callback(
         logger.error(f"Google OAuth error: {str(e)}", exc_info=True)
         frontend_url = f"{settings.FRONTEND_URL}/login?error=oauth_error"
         return RedirectResponse(url=frontend_url)
+
+
+# ==================== PRIVY AUTHENTICATION ====================
+
+@router.post("/privy/verify")
+async def verify_privy_token(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    Verify Privy JWT token and create/link user account.
+    
+    Expects Authorization header with Privy JWT token.
+    Returns user info and our internal JWT token.
+    """
+    if not settings.privy_app_id:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Privy authentication is not configured. Please set APP_ID (or PRIVY_ID) in backend/.env"
+        )
+    
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid Authorization header"
+        )
+    
+    privy_token = auth_header.split(" ")[1]
+    
+    try:
+        # Decode Privy JWT token (without verification for now - in production verify with Privy's public key)
+        # Privy tokens contain user info in the payload
+        payload = jwt.decode(privy_token, options={"verify_signature": False})
+        
+        privy_user_id = payload.get("sub")
+        email = payload.get("email")
+        name = payload.get("name")
+        wallet_address = payload.get("wallet", {}).get("address")
+        
+        if not privy_user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid Privy token: missing user ID"
+            )
+        
+        # Check if user exists by Privy ID
+        existing_user = db.query(User).filter(User.provider_id == privy_user_id).first()
+        
+        if existing_user:
+            logger.info(f"Existing Privy user found: {existing_user.id}")
+            user = existing_user
+        else:
+            # Check if user exists by email
+            if email:
+                email_user = db.query(User).filter(User.email == email).first()
+                if email_user:
+                    # Link Privy account to existing user
+                    email_user.auth_provider = "privy"
+                    email_user.provider_id = privy_user_id
+                    if wallet_address and not email_user.wallet_address:
+                        email_user.wallet_address = wallet_address
+                    db.commit()
+                    user = email_user
+                    logger.info(f"Linked Privy account to existing user: {user.id}")
+                else:
+                    # Create new user
+                    user = User(
+                        full_name=name or email.split("@")[0] if email else f"User {privy_user_id[:8]}",
+                        email=email,
+                        hashed_password=None,  # OAuth users don't have passwords
+                        role=UserRole.INVESTOR,  # Default role for Privy users
+                        auth_provider="privy",
+                        provider_id=privy_user_id,
+                        wallet_address=wallet_address,
+                        failed_login_attempts=0
+                    )
+                    db.add(user)
+                    db.commit()
+                    db.refresh(user)
+                    logger.info(f"Created new user from Privy auth: {user.id}")
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Privy token missing email - cannot create account"
+                )
+        
+        # Update last login
+        user.last_login = datetime.utcnow()
+        db.commit()
+        
+        # Generate our internal JWT token
+        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        jwt_token = create_access_token(
+            data={
+                "sub": str(user.id),
+                "email": user.email,
+                "role": user.role.value
+            },
+            expires_delta=access_token_expires
+        )
+        
+        logger.info(f"✅ Privy authentication successful for user {user.id} (email: {user.email})")
+        
+        return {
+            "access_token": jwt_token,
+            "token_type": "bearer",
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "full_name": user.full_name,
+                "role": user.role.value,
+                "wallet_address": user.wallet_address,
+                "auth_provider": user.auth_provider
+            }
+        }
+        
+    except PyJWTError as e:
+        logger.error(f"Invalid Privy JWT token: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Privy token"
+        )
+    except Exception as e:
+        logger.error(f"Privy authentication error: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Authentication failed"
+        )

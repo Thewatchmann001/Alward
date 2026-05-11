@@ -32,9 +32,11 @@ class Message(Base):
     file_name = Column(String(255), nullable=True)  # Original filename
     file_type = Column(String(50), nullable=True)  # File MIME type
     file_size = Column(Integer, nullable=True)  # File size in bytes
+    milestone_id = Column(Integer, ForeignKey("milestones.id"), nullable=True)  # Optional link to milestone
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
     conversation = relationship("Conversation", back_populates="messages")
     sender = relationship("User")
+    milestone = relationship("Milestone")
 

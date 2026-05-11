@@ -13,6 +13,7 @@ alembic==1.12.1
 python-dotenv==1.0.0
 passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
+PyJWT>=2.8.0
 # Blockchain
 solana>=0.30.0
 solders>=0.18.0

@@ -1,10 +1,12 @@
 [workspace]
 members = [
-    "programs/certificate-registry",
     "programs/startup-registry",
-    "programs/investment-ledger",
+    "programs/milestone-escrow",
 ]
-resolver = "2"
+resolver = "1"
+
+[patch.crates-io]
+toml_edit = { package = "toml_edit", version = "=0.21.1" }
 
 [profile.release]
 overflow-checks = true

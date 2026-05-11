@@ -1,26 +1,27 @@
 {
-  "name": "trustbridge-blockchain",
-  "version": "1.0.0",
-  "description": "TrustBridge SL - Solana-based blockchain infrastructure for verified talent pipeline",
+  "name": "alward-blockchain",
+  "version": "2.0.0",
+  "description": "ALWARD Protocol — Milestone-Gated USDC Escrow on Solana",
   "main": "index.js",
   "scripts": {
     "test": "jest --testTimeout=30000",
-    "test:certificate": "jest tests/certificate.test.js",
     "test:startup": "jest tests/startup.test.js",
     "test:investment": "jest tests/investment.test.js",
-    "build": "anchor build && node scripts/fix-idl.js",
-    "fix-idl": "node scripts/fix-idl.js",
-    "deploy": "anchor deploy",
-    "deploy:devnet": "anchor deploy --provider.cluster devnet"
+    "build": "anchor build",
+    "deploy": "anchor deploy --provider.cluster devnet",
+    "deploy:escrow": "node scripts/deployEscrow.js",
+    "setup:escrow": "node scripts/initFounderEscrow.js"
   },
   "keywords": [
     "solana",
-    "blockchain",
-    "certificates",
-    "trustbridge",
-    "sierra-leone"
+    "anchor",
+    "escrow",
+    "usdc",
+    "alward",
+    "diaspora",
+    "investment"
   ],
-  "author": "TrustBridge SL",
+  "author": "ALWARD Protocol",
   "license": "MIT",
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Database seeding script for TrustBridge
-Creates sample data for testing and development
+ALWARD - Seed Database Script
 """
 
 import sys
@@ -115,6 +114,13 @@ def seed_database():
                 "password": "password123",
                 "role": UserRole.INVESTOR,
                 "wallet_address": "9xKpLmNqR2sTvW4yZ6aB8cD1eF3gH5jK7mN9pQ2r",
+            },
+            {
+                "full_name": "System Admin",
+                "email": "josephemsamah@gmail.com",
+                "password": "password123",
+                "role": UserRole.ADMIN,
+                "wallet_address": "AdminWalletPlaceholder12345678901234567890",
             },
         ]
         
@@ -621,6 +627,8 @@ def seed_database():
         print("  Investors:")
         print("    - frank@investor.com / password123")
         print("    - kadiatu@investor.com / password123")
+        print("  System Admin:")
+        print("    - josephemsamah@gmail.com / password123")
         print("\n💡 Note: Certificates are no longer part of the system.")
         print("   Education information is stored in User.university and CV education sections.")
         

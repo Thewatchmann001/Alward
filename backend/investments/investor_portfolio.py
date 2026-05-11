@@ -69,6 +69,7 @@ class InvestorPortfolio:
                     "id": inv.id,
                     "amount": inv.amount,
                     "tx_signature": inv.tx_signature,
+                    "investment_id": inv.investment_id,
                     "timestamp": inv.timestamp.isoformat() if inv.timestamp else None,
                     "explorer_url": f"https://explorer.solana.com/tx/{inv.tx_signature}?cluster=devnet" if inv.tx_signature and not inv.tx_signature.startswith("mock_") and not inv.tx_signature.startswith("stripe:") else None
                 })
@@ -88,6 +89,7 @@ class InvestorPortfolio:
                     "startup_name": inv.startup.name if inv.startup else "Unknown",
                     "amount": inv.amount,
                     "tx_signature": inv.tx_signature,
+                    "investment_id": inv.investment_id,
                     "timestamp": inv.timestamp.isoformat() if inv.timestamp else None,
                     "explorer_url": f"https://explorer.solana.com/tx/{inv.tx_signature}?cluster=devnet" if inv.tx_signature and not inv.tx_signature.startswith("mock_") and not inv.tx_signature.startswith("stripe:") else None
                 }

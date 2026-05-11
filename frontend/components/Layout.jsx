@@ -4,7 +4,6 @@ import { useAuth } from "../contexts/AuthContext";
 import {
   LogOut,
   Building2,
-  GraduationCap,
   Briefcase,
   RefreshCw,
 } from "lucide-react";
@@ -23,13 +22,9 @@ export default function Layout({ children }) {
     if (!user) return [];
 
     const links = [];
-    const canJobSeeker = capabilities?.job_seeker !== false || role === "student" || role === "job_seeker";
     const canInvestor = capabilities?.investor !== false || role === "investor";
     const canFounder = capabilities?.founder === true || role === "founder" || role === "startup";
 
-    if (canJobSeeker) {
-      links.push({ href: "/cv-builder", label: "CV Builder", icon: GraduationCap });
-    }
     if (canInvestor) {
       links.push({ href: "/investor-platform", label: "Investments", icon: Briefcase });
     }
@@ -46,7 +41,7 @@ export default function Layout({ children }) {
   const handleRoleSwitch = async (newRole) => {
     const result = await switchRole(newRole);
     if (result.success && result.active_role) {
-      const path = result.active_role === "student" ? "/cv-builder" : result.active_role === "founder" ? "/startup-dashboard" : "/investor-platform";
+      const path = result.active_role === "founder" ? "/startup-dashboard" : "/investor-platform";
       router.push(path);
     }
   };
@@ -57,25 +52,25 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen">
       {isAuthenticated && !isLandingPage && (
-        <nav className="glass-premium border-b border-blue-200/50 sticky top-0 z-50 backdrop-blur-xl">
+        <nav className="sticky top-0 z-50 bg-[#020617]/80 backdrop-blur-xl border-b border-white/5">
           <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <Logo size="default" />
 
               <div className="flex items-center gap-4">
                 {showRoleSwitcher && (
-                  <div className="flex items-center gap-2 rounded-xl bg-blue-50/80 px-3 py-2 border border-blue-200/60">
-                    <span className="text-xs font-medium text-blue-700 hidden sm:inline">View as</span>
+                  <div className="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 border border-white/10">
+                    <span className="text-xs font-medium text-slate-400 hidden sm:inline">View as</span>
                     <select
                       value={role === "startup" ? "founder" : role}
                       onChange={(e) => handleRoleSwitch(e.target.value)}
-                      className="text-sm font-semibold text-blue-800 bg-transparent border-0 cursor-pointer focus:ring-0 focus:outline-none py-1 pr-6"
+                      className="text-sm font-semibold text-white bg-transparent border-0 cursor-pointer focus:ring-0 focus:outline-none py-1 pr-6"
                     >
                       {allowedRoles.map((r) => (
-                        <option key={r} value={r}>{ROLE_LABELS[r] || r}</option>
+                        <option key={r} value={r} className="bg-[#020617]">{ROLE_LABELS[r] || r}</option>
                       ))}
                     </select>
-                    <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
+                    <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
                   </div>
                 )}
                 {navLinks.map((link) => {
@@ -85,10 +80,10 @@ export default function Layout({ children }) {
                     <Link
                       key={link.href}
                       href={link.href}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-300 ${
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${
                         isActive
-                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
-                          : "text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+                          ? "text-white border border-white/10 bg-white/10"
+                          : "text-slate-400 hover:text-white hover:bg-white/5"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -97,13 +92,13 @@ export default function Layout({ children }) {
                   );
                 })}
 
-                <div className="flex items-center gap-4 pl-4 border-l border-blue-200">
-                  <span className="text-sm text-blue-700 font-medium hidden md:inline">
+                <div className="flex items-center gap-4 pl-4 border-l border-white/10">
+                  <span className="text-sm text-slate-400 font-medium hidden md:inline">
                     {user?.full_name || user?.email}
                   </span>
                   <button
                     onClick={logout}
-                    className="flex items-center gap-2 text-blue-700 hover:text-red-600 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-red-50"
+                    className="flex items-center gap-2 text-slate-400 hover:text-red-400 transition-colors font-bold text-xs uppercase tracking-widest px-3 py-2 rounded-xl hover:bg-red-500/10"
                   >
                     <LogOut className="w-4 h-4" />
                     <span className="hidden md:inline">Logout</span>

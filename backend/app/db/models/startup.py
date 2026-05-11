@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, Boolean, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, Boolean, Text, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.base import Base
@@ -19,6 +19,7 @@ class Startup(Base):
     funding_goal = Column(Float, nullable=True)  # Funding goal in USDC
     pitch_deck_url = Column(String(500), nullable=True)  # URL to pitch deck
     description = Column(String(2000), nullable=True)  # Startup description
+    status = Column(String(20), default="pending") # pending, approved, rejected
     
     # Additional business information
     website = Column(String(500), nullable=True)  # Company website
@@ -50,11 +51,15 @@ class Startup(Base):
     milestones_completed = Column(Integer, default=0)  # Number of business milestones completed
     last_milestone_date = Column(DateTime, nullable=True)  # Date of last milestone
     
+    # Investment Trust Intelligence Layer (Triangulation of Truth)
+    risk_score = Column(Float, default=100.0)  # Dynamic risk score (0-100, 100=highest risk)
+    verification_summary = Column(JSON, nullable=True)  # Weighted summary of triangulation layers
+    
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     founder = relationship("User", back_populates="startups")
-    jobs = relationship("Job", back_populates="startup")
-    investments = relationship("Investment", back_populates="startup")
+    investments = relationship("Investment", back_populates="startup", cascade="all, delete-orphan")
     employees = relationship("Employee", back_populates="startup", cascade="all, delete-orphan")
+    milestones = relationship("Milestone", back_populates="startup", cascade="all, delete-orphan")
 

@@ -1,4 +1,4 @@
-# TrustBridge Frontend — Next.js
+# Alward Frontend — Next.js
 FROM node:20-alpine AS builder
 
 WORKDIR /app

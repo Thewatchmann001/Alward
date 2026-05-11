@@ -27,9 +27,9 @@ const nextConfig = {
     ];
 
     // Ensure all @solana/web3.js imports resolve to the top-level package
-    if (!config.resolve.alias["@solana/web3.js"]) {
-      config.resolve.alias["@solana/web3.js"] = require.resolve("@solana/web3.js");
-    }
+    // if (!config.resolve.alias["@solana/web3.js"]) {
+    //   config.resolve.alias["@solana/web3.js"] = require.resolve("@solana/web3.js");
+    // }
 
     return config;
   },

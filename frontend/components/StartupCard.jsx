@@ -1,27 +1,24 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Building2, MapPin, Users, TrendingUp, Award, X, ExternalLink, Shield } from "lucide-react";
+import { Building2, MapPin, Users, TrendingUp, ExternalLink, ShieldCheck } from "lucide-react";
 import { startupAPI } from "../lib/api";
 import toast from "react-hot-toast";
-import { AttestationBadgeList } from "./attestation/AttestationBadge";
 
 const StartupCard = ({ startup }) => {
   const [showEmployees, setShowEmployees] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
-  const [attestations, setAttestations] = useState([]);
-  const [loadingAttestations, setLoadingAttestations] = useState(false);
 
-  const credibilityGrade =
-    startup.credibility_score >= 80
-      ? "A+"
-      : startup.credibility_score >= 70
-      ? "A"
-      : startup.credibility_score >= 60
-      ? "B"
-      : startup.credibility_score >= 50
-      ? "C"
-      : "D";
+  const getRiskInfo = (score) => {
+    // Treat as Confidence: 100 - Risk
+    const confidence = score || 0;
+    if (confidence >= 80) return { grade: "A", color: "text-slate-900" };
+    if (confidence >= 60) return { grade: "B", color: "text-slate-900" };
+    if (confidence >= 40) return { grade: "C", color: "text-slate-900" };
+    return { grade: "D", color: "text-slate-900" };
+  };
+
+  const riskInfo = getRiskInfo(startup.credibility_score);
 
   const handleShowEmployees = async (e) => {
     e.preventDefault();
@@ -42,184 +39,103 @@ const StartupCard = ({ startup }) => {
     }
   };
 
-  // Fetch attestations if founder_id is available
-  useEffect(() => {
-    const founderId = startup.founder_id || startup.founder?.id;
-    if (founderId) {
-      fetchAttestations(founderId);
-    }
-  }, [startup.founder_id, startup.founder?.id]);
-
-  const fetchAttestations = async (founderId) => {
-    try {
-      setLoadingAttestations(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      const response = await fetch(`${apiUrl}/api/attestations/user/${founderId}`);
-      if (response.ok) {
-        const data = await response.json();
-        // Only show verified attestations
-        const verified = (data.attestations || []).filter(att => att.verified);
-        setAttestations(verified.slice(0, 2)); // Show max 2 badges on card
-      }
-    } catch (error) {
-      console.error("Error fetching attestations:", error);
-    } finally {
-      setLoadingAttestations(false);
-    }
-  };
-
   return (
     <>
-      <Link href={`/investor/startup-profile?id=${startup.startup_id}`}>
-        <div className="card hover:scale-105 cursor-pointer group">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3 flex-1">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-trust-blue to-trust-dark flex items-center justify-center text-white flex-shrink-0">
-                <Building2 className="w-8 h-8" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-bold text-gray-900 group-hover:text-trust-blue transition-colors">
-                  {startup.name}
-                </h3>
-                <p className="text-gray-600 text-sm">{startup.sector}</p>
-                <p className="text-gray-500 text-xs font-mono mt-1 break-all">
-                  ID: {startup.startup_id || "N/A"}
-                </p>
-              </div>
+      <Link href={`/investor-platform?startupId=${startup.startup_id}`}>
+        <div className="card-hover p-5 flex flex-col h-full bg-white relative">
+          <div className="flex items-start gap-4 mb-5">
+            <div className="w-14 h-14 rounded-full bg-slate-900 flex flex-shrink-0 items-center justify-center text-white shadow-sm">
+              <Building2 className="w-7 h-7" />
             </div>
-            <div className="text-right flex-shrink-0 ml-2">
-              <div className="text-2xl font-bold text-trust-blue">
-                {credibilityGrade}
-              </div>
-              <div className="text-xs text-gray-500">Credibility</div>
+            <div className="flex-1 min-w-0 pr-12">
+              <h3 className="text-[17px] font-bold text-slate-900 leading-tight mb-1 truncate">
+                {startup.name}
+              </h3>
+              <p className="text-slate-500 text-[13px] font-medium">{startup.sector}</p>
+              <p className="text-slate-400 text-[10px] font-mono mt-1 break-all tracking-wider uppercase">
+                ID: {startup.startup_id || "N/A"}
+              </p>
+            </div>
+            <div className="absolute top-5 right-5 text-right flex flex-col items-end">
+              <span className={`text-2xl font-black leading-none ${riskInfo.color}`}>{riskInfo.grade}</span>
+              <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-widest mt-1">Credibility</span>
             </div>
           </div>
 
-          <div className="space-y-2 mb-4">
+          <div className="space-y-3 mb-6 flex-1">
             {startup.country && (
-              <div className="flex items-center gap-2 text-gray-600">
-                <MapPin className="w-4 h-4" />
-                <span className="text-sm">{startup.country}</span>
+              <div className="flex items-center gap-2.5 text-slate-600">
+                <MapPin className="w-4 h-4 text-slate-400" />
+                <span className="text-[13px] font-medium">{startup.country}</span>
               </div>
             )}
             <button
               onClick={handleShowEmployees}
-              className="flex items-center gap-2 text-gray-600 hover:text-trust-blue transition-colors w-full text-left"
+              className="flex items-center gap-2.5 text-slate-600 hover:text-indigo-600 transition-colors w-full text-left"
             >
-              <Users className="w-4 h-4" />
-              <span className="text-sm">
-                {startup.employees_verified || 0} Verified Employees (click to
-                view)
+              <Users className="w-4 h-4 text-slate-400" />
+              <span className="text-[13px] font-medium">
+                {startup.employees_verified || 0} Verified Employees (click to view)
               </span>
             </button>
             {startup.credibility_score !== undefined && (
-              <div className="flex items-center gap-2 text-gray-600">
-                <TrendingUp className="w-4 h-4" />
-                <span className="text-sm">
-                  Score: {startup.credibility_score.toFixed(1)}/100
+              <div className="flex items-center gap-2.5 text-slate-600">
+                <TrendingUp className="w-4 h-4 text-slate-400" />
+                <span className="text-[13px] font-medium">
+                  Score: {startup.credibility_score?.toFixed(1)}/100
                 </span>
               </div>
             )}
           </div>
 
-          <div className="pt-4 border-t border-gray-200 space-y-2">
-            {/* Attestation Badges */}
-            {attestations.length > 0 && (
-              <div className="mb-2">
-                <AttestationBadgeList attestations={attestations} size="sm" />
-              </div>
-            )}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Award className="w-4 h-4 text-green-600" />
-                <span className="text-sm font-bold text-green-700">
+          <div className="mt-auto">
+            {/* Badges placeholder (for devnet tests) */}
+            <div className="flex flex-col gap-2 mb-4">
+              {startup.credibility_score > 50 && (
+                 <>
+                   <div className="bg-amber-100/50 border border-amber-200 text-amber-800 text-[10px] font-semibold px-2 py-1 rounded-full flex w-fit items-center gap-1">
+                      <span className="text-amber-500">✓</span> Test Verified Business (Devnet)
+                   </div>
+                   <div className="bg-amber-100/50 border border-amber-200 text-amber-800 text-[10px] font-semibold px-2 py-1 rounded-full flex w-fit items-center gap-1">
+                      <span className="text-amber-500">✓</span> Test Verified Identity (Devnet)
+                   </div>
+                 </>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span className="text-[13px] font-bold text-emerald-700">
                   Blockchain Verified
                 </span>
               </div>
-              <span className="text-sm text-trust-blue font-semibold group-hover:underline">
-                View Details →
+              <span className="text-[12px] text-slate-900 font-semibold flex items-center gap-1 hover:text-indigo-600 transition-colors">
+                View Details <span className="text-slate-400">→</span>
               </span>
             </div>
+
             {startup.transaction_signature && (
-              <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-xs font-bold text-green-900 mb-1">Transaction Hash:</p>
+              <div className="p-3 bg-emerald-50/50 border border-emerald-100 rounded-xl">
+                <p className="text-[10px] font-bold text-emerald-900/60 mb-0.5 uppercase tracking-wider">Transaction Hash:</p>
                 <a
                   href={`https://explorer.solana.com/tx/${startup.transaction_signature}?cluster=devnet`}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="text-xs text-green-700 hover:text-green-900 font-mono break-all flex items-center gap-1 hover:underline"
+                  className="text-[11px] text-emerald-700 hover:text-emerald-900 font-mono break-all flex items-center gap-1.5 hover:underline"
                 >
-                  {startup.transaction_signature.substring(0, 16)}...
-                  <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{startup.transaction_signature.substring(0, 18)}...</span>
+                  <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-50" />
                 </a>
               </div>
             )}
           </div>
         </div>
       </Link>
-
-      {/* Employees Modal */}
-      {showEmployees && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-          onClick={() => setShowEmployees(false)}
-        >
-          <div
-            className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">Employees - {startup.name}</h2>
-              <button
-                onClick={() => setShowEmployees(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            {loadingEmployees ? (
-              <div className="text-center py-8">Loading employees...</div>
-            ) : employees.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                No employees found
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {employees.map((emp) => (
-                  <div key={emp.user_id} className="p-4 bg-gray-50 rounded-lg">
-                    <h3 className="font-semibold">{emp.full_name}</h3>
-                    <p className="text-sm text-gray-600">{emp.email}</p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {emp.certificates_count} certificate(s)
-                    </p>
-                    {emp.certificates && emp.certificates.length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        {emp.certificates.map((cert, idx) => (
-                          <div
-                            key={idx}
-                            className="text-xs bg-white p-2 rounded"
-                          >
-                            <span className="font-semibold">{cert.major}</span>{" "}
-                            - {cert.university} ({cert.graduation_year})
-                            {cert.verified === "verified" && (
-                              <span className="ml-2 text-green-600">
-                                ✓ Verified
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </>
   );
 };
 
 export default StartupCard;
+

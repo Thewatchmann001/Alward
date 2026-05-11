@@ -1,71 +1,49 @@
-import Image from 'next/image';
 import Link from 'next/link';
-import { Shield } from 'lucide-react';
-import { useState } from 'react';
+import Image from 'next/image';
 
-export default function Logo({ size = 'default', showText = true, className = '', variant = 'default' }) {
-  const [hasLogoImage, setHasLogoImage] = useState(true);
-  
+/**
+ * Logo.jsx — ALWARD Official Brand Component
+ * Uses the official logo image (charcoal + gold palette).
+ * The image is inverted to white for use on dark backgrounds.
+ */
+export default function Logo({ size = 'default', showText = true, className = '' }) {
   const sizes = {
-    small: { logo: 'w-8 h-8', text: 'text-lg', subtext: 'text-[10px]' },
-    default: { logo: 'w-12 h-12', text: 'text-xl', subtext: 'text-xs' },
-    large: { logo: 'w-16 h-16', text: 'text-2xl md:text-3xl', subtext: 'text-sm' },
+    small:   { img: 28, text: 'text-lg' },
+    default: { img: 36, text: 'text-xl' },
+    medium:  { img: 36, text: 'text-xl' },
+    large:   { img: 56, text: 'text-4xl md:text-5xl' },
   };
 
-  const sizeConfig = sizes[size];
-  
-  // Text color classes based on variant
-  const textClasses = variant === 'light' 
-    ? {
-        main: 'text-white',
-        sub: 'text-blue-100'
-      }
-    : {
-        main: 'bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 bg-clip-text text-transparent group-hover:from-blue-700 group-hover:via-blue-800 group-hover:to-blue-900',
-        sub: 'text-blue-600'
-      };
+  const cfg = sizes[size] || sizes['default'];
 
   return (
-    <Link 
-      href="/" 
-      className={`flex items-center gap-3 group ${className}`} 
-      style={{ textDecoration: 'none' }}
+    <Link
+      href="/"
+      className={`flex items-center gap-3 group select-none ${className}`}
     >
-      {/* Logo Image/Icon */}
-      <div className={`relative ${sizeConfig.logo} flex-shrink-0`}>
-        {hasLogoImage ? (
-          <Image
-            src="/trust.png"
-            alt="TrustBridge Logo"
-            width={size === 'small' ? 32 : size === 'default' ? 48 : 64}
-            height={size === 'small' ? 32 : size === 'default' ? 48 : 64}
-            className="object-contain"
-            onError={() => setHasLogoImage(false)}
-            priority
-          />
-        ) : (
-          // Fallback to icon if image doesn't exist
-          <div className="relative w-full h-full">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 rounded-xl transform rotate-3 group-hover:rotate-6 transition-transform duration-300 shadow-lg"></div>
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-xl transform -rotate-3 group-hover:-rotate-6 transition-transform duration-300"></div>
-            <div className="relative w-full h-full bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-xl">
-              <Shield className="w-1/2 h-1/2 text-white" strokeWidth={2.5} />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-xl pointer-events-none"></div>
-          </div>
-        )}
+      {/* Official mark — inverted to white so it reads on dark bg */}
+      <div
+        className="flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
+        style={{ width: cfg.img, height: cfg.img, position: 'relative' }}
+      >
+        <Image
+          src="/alward-logo.png"
+          alt="ALWARD"
+          width={cfg.img}
+          height={cfg.img}
+          style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+          priority
+        />
       </div>
-      
-      {/* TrustBridge Text - Always Visible */}
+
+      {/* Gold wordmark */}
       {showText && (
-        <div className="flex flex-col justify-center">
-          <span className={`${sizeConfig.text} font-extrabold ${textClasses.main} transition-all duration-300 leading-tight tracking-tight whitespace-nowrap drop-shadow-lg`}>
-            TrustBridge
-          </span>
-          <span className={`${sizeConfig.subtext} ${textClasses.sub} font-semibold -mt-0.5 leading-tight whitespace-nowrap`}>
-            Sierra Leone
-          </span>
-        </div>
+        <span
+          className={`${cfg.text} font-black uppercase`}
+          style={{ color: '#C9A04A', letterSpacing: '0.2em' }}
+        >
+          ALWARD
+        </span>
       )}
     </Link>
   );

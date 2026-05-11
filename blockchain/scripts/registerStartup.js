@@ -29,9 +29,31 @@ async function registerStartup({ startupName, sector, founderAddress }) {
     const homeDir = process.env.HOME || process.env.USERPROFILE;
     const walletPath =
       process.env.WALLET_PATH || path.join(homeDir, ".config/solana/id.json");
-    const walletKeypair = Keypair.fromSecretKey(
-      new Uint8Array(JSON.parse(fs.readFileSync(walletPath, "utf-8")))
-    );
+    let walletKeypair;
+    try {
+      walletKeypair = Keypair.fromSecretKey(
+        new Uint8Array(JSON.parse(fs.readFileSync(walletPath, "utf-8")))
+      );
+    } catch (e) {
+      console.log("Could not find local wallet, generating a temporary one for testing...");
+      walletKeypair = Keypair.generate();
+    }
+
+    // Airdrop SOL if balance is zero (for devnet testing)
+    const balance = await connection.getBalance(walletKeypair.publicKey);
+    if (balance < 0.01 * 10**9) {
+      console.log("Requesting airdrop for wallet...");
+      try {
+        const airdropSig = await connection.requestAirdrop(
+          walletKeypair.publicKey,
+          2 * 10**9
+        );
+        await connection.confirmTransaction(airdropSig, "confirmed");
+        console.log("Airdrop successful.");
+      } catch (err) {
+        console.warn("Airdrop failed, transaction might fail if balance is 0:", err.message);
+      }
+    }
 
     // Generate unique startup ID
     const startupId = `STARTUP-${Date.now()

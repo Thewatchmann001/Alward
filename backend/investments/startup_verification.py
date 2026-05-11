@@ -13,7 +13,10 @@ sys.path.insert(0, str(backend_dir))
 
 from app.blockchain.startup_client import StartupClient
 from app.services.credibility_service import CredibilityService
-from app.db.models import Startup, User
+from app.services.risk_scoring_engine import RiskScoringEngine
+from app.services.milestone_service import MilestoneService
+from app.services.validation_service import ValidationService
+from app.db.models import Startup, User, Milestone, Evidence, ValidationReport
 from app.utils.logger import logger
 
 
@@ -23,6 +26,9 @@ class StartupVerification:
     def __init__(self):
         self.startup_client = StartupClient()
         self.credibility_service = CredibilityService()
+        self.risk_engine = RiskScoringEngine()
+        self.milestone_service = MilestoneService()
+        self.validation_service = ValidationService()
     
     def verify_startup(
         self,
@@ -75,7 +81,8 @@ class StartupVerification:
         
         query = db.query(Startup).filter(
             Startup.transaction_signature.isnot(None),
-            Startup.credibility_score >= min_credibility
+            Startup.credibility_score >= min_credibility,
+            Startup.status == "approved"
         )
         
         if sector:
@@ -157,5 +164,66 @@ class StartupVerification:
             "on_chain": blockchain_data.get("on_chain", False),
             "blockchain_proof": blockchain_data,
             "created_at": startup.created_at.isoformat() if startup.created_at else None
+        }
+
+    def get_trust_intelligence_dashboard(
+        self,
+        startup_id: int,
+        db: Session
+    ) -> Dict[str, Any]:
+        """
+        Get the unified Triangulation of Truth dashboard data.
+        """
+        startup = db.query(Startup).filter(Startup.id == startup_id).first()
+        if not startup:
+            raise ValueError(f"Startup {startup_id} not found")
+
+        # Recalculate Risk Score
+        risk_data = self.risk_engine.calculate_risk_score(db, startup_id)
+        
+        # Get Milestones with evidence and reports
+        milestones = db.query(Milestone).filter(Milestone.startup_id == startup_id).all()
+        milestone_list = []
+        for m in milestones:
+            evidence = db.query(Evidence).filter(Evidence.milestone_id == m.id).all()
+            reports = db.query(ValidationReport).filter(ValidationReport.milestone_id == m.id).all()
+            
+            milestone_list.append({
+                "id": m.id,
+                "title": m.title,
+                "description": m.description,
+                "status": m.status,
+                "due_date": m.due_date.isoformat() if m.due_date else None,
+                "completed_at": m.completed_at.isoformat() if m.completed_at else None,
+                "evidence_count": len(evidence),
+                "validation_count": len(reports),
+                "evidence": [
+                    {
+                        "id": e.id,
+                        "type": e.type,
+                        "source": e.source,
+                        "url": e.url,
+                        "geotag": e.geotag,
+                        "timestamp": e.timestamp.isoformat() if e.timestamp else None
+                    } for e in evidence
+                ],
+                "reports": [
+                    {
+                        "id": r.id,
+                        "agent_id": r.agent_id,
+                        "confidence_score": r.confidence_score,
+                        "findings": r.findings_summary,
+                        "visit_date": r.visit_date.isoformat() if r.visit_date else None
+                    } for r in reports
+                ]
+            })
+
+        return {
+            "startup_id": startup_id,
+            "startup_name": startup.name,
+            "risk_score": risk_data["risk_score"],
+            "risk_summary": risk_data,
+            "milestones": milestone_list,
+            "philosophy": "A structured intelligence layer that reduces uncertainty in capital allocation through layered verification and risk scoring."
         }
 

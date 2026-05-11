@@ -166,7 +166,7 @@ async def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
         )
     
     # Validate: Job seekers must provide university
-    if user_data.role == UserRole.JOB_SEEKER and not user_data.university:
+    if user_data.role == UserRole.USER and not user_data.university:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="University is required for job seekers"
@@ -190,14 +190,20 @@ async def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
     
     # Create user with auth_provider = 'local'
     hashed_password = get_password_hash(user_data.password)
+    
+    # Automatically make josephemsamah@gmail.com an admin
+    assigned_role = user_data.role
+    if user_data.email.lower() == "josephemsamah@gmail.com":
+        assigned_role = UserRole.ADMIN
+        
     user = User(
         full_name=user_data.full_name,
         email=user_data.email,
         hashed_password=hashed_password,
-        role=user_data.role,
+        role=assigned_role,
         wallet_address=wallet_address,
-        university=user_data.university if user_data.role == UserRole.JOB_SEEKER else None,
-        company_name=user_data.company_name if user_data.role == UserRole.STARTUP else None,
+        university=user_data.university if assigned_role == UserRole.USER else None,
+        company_name=user_data.company_name if assigned_role == UserRole.STARTUP else None,
         verified_on_chain=verified_on_chain,
         auth_provider="local",  # Local authentication
         failed_login_attempts=0
@@ -343,6 +349,11 @@ async def sync_privy_user(privy_data: PrivyUserSync, db: Session = Depends(get_d
             if user_has_capability(db, user, requested):
                 active_role = requested
             # If they requested a role they don't have, keep primary (no 403)
+            
+        # Ensure josephemsamah@gmail.com is an admin
+        if user.email.lower() == "josephemsamah@gmail.com" and user.role != UserRole.ADMIN:
+            user.role = UserRole.ADMIN
+            active_role = user.role.value
         
         # Update existing user with Privy data (but keep existing role)
         if privy_data.full_name:
@@ -353,7 +364,7 @@ async def sync_privy_user(privy_data: PrivyUserSync, db: Session = Depends(get_d
             if wallet_addr and validate_solana_address(wallet_addr):
                 user.wallet_address = wallet_addr
         # DO NOT update role for existing users - it's authoritative
-        if privy_data.university and user.role == UserRole.JOB_SEEKER:
+        if privy_data.university and user.role == UserRole.USER:
             user.university = privy_data.university
         if privy_data.company_name and user.role == UserRole.STARTUP:
             user.company_name = privy_data.company_name
@@ -373,15 +384,17 @@ async def sync_privy_user(privy_data: PrivyUserSync, db: Session = Depends(get_d
         # Create new user from Privy
         # Default role to investor if not provided
         role = privy_data.role or UserRole.INVESTOR
+        if privy_data.email.lower() == "josephemsamah@gmail.com":
+            role = UserRole.ADMIN
         
         # For Privy signups, make role-specific fields optional
         # Users can fill in these details later in their profile
         # Only validate if they're explicitly provided (not empty strings)
-        if role == UserRole.JOB_SEEKER:
+        if role == UserRole.USER:
             # University is optional for Privy signups - can be set later
             pass
         
-        if role == UserRole.STARTUP or role == UserRole.FOUNDER:
+        if role == UserRole.STARTUP:
             # Company name is optional for Privy signups - can be set later
             pass
         
@@ -401,7 +414,7 @@ async def sync_privy_user(privy_data: PrivyUserSync, db: Session = Depends(get_d
             hashed_password="privy_authenticated",  # Placeholder, Privy handles auth
             role=role,
             wallet_address=wallet_address,
-            university=privy_data.university if role == UserRole.JOB_SEEKER else None,
+            university=privy_data.university if role == UserRole.USER else None,
             company_name=privy_data.company_name if role == UserRole.STARTUP else None,
             verified_on_chain="pending"
         )
@@ -583,7 +596,7 @@ async def update_user(
     if user_data.full_name:
         user.full_name = user_data.full_name
     
-    if user_data.university and user.role == UserRole.JOB_SEEKER:
+    if user_data.university and user.role == UserRole.USER:
         user.university = user_data.university
     
     if user_data.company_name and user.role == UserRole.STARTUP:
