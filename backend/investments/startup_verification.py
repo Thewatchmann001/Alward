@@ -80,9 +80,8 @@ class StartupVerification:
         logger.info(f"Listing verified startups (skip={skip}, limit={limit})")
         
         query = db.query(Startup).filter(
-            Startup.transaction_signature.isnot(None),
-            Startup.credibility_score >= min_credibility,
-            Startup.status == "approved"
+            Startup.status == "approved",
+            Startup.credibility_score >= min_credibility
         )
         
         if sector:
@@ -103,8 +102,8 @@ class StartupVerification:
                 "funding_goal": startup.funding_goal,
                 "description": startup.description,
                 "transaction_signature": startup.transaction_signature,
-                "verified": True,
-                "on_chain": True
+                "verified": startup.transaction_signature is not None,
+                "on_chain": startup.transaction_signature is not None
             })
         
         return result

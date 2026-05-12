@@ -60,7 +60,9 @@ def create_proposal(
     current_user: User = Depends(get_current_user)
 ):
     """Startups create an investment proposal with a list of milestones."""
-    if current_user.role != UserRole.STARTUP:
+    # Unified account check using effective_role
+    role = getattr(current_user, "effective_role", current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role))
+    if role not in ["founder", "startup"]:
         raise HTTPException(status_code=403, detail="Only startups can create proposals")
 
     startup = db.query(Startup).filter(Startup.id == data.startup_id, Startup.founder_id == current_user.id).first()
@@ -106,7 +108,9 @@ def get_my_proposals(
     current_user: User = Depends(get_current_user)
 ):
     """Fetch the startup's own proposals."""
-    if current_user.role != UserRole.STARTUP:
+    # Unified account check using effective_role
+    role = getattr(current_user, "effective_role", current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role))
+    if role not in ["founder", "startup"]:
         raise HTTPException(status_code=403, detail="Not a startup")
     
     startup = db.query(Startup).filter(Startup.founder_id == current_user.id).first()
@@ -158,7 +162,9 @@ def approve_proposal(
     current_user: User = Depends(get_current_user)
 ):
     """Investors/Admins approve the proposal, triggering state transition to LOCKED."""
-    if current_user.role not in [UserRole.INVESTOR, UserRole.ADMIN]:
+    # Unified account check using effective_role
+    role = getattr(current_user, "effective_role", current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role))
+    if role not in ["investor", "admin", "superadmin"]:
         raise HTTPException(status_code=403, detail="Only investors or admins can approve proposals")
 
     proposal = db.query(Proposal).filter(Proposal.id == proposal_id).first()
@@ -181,7 +187,9 @@ def submit_report(
     current_user: User = Depends(get_current_user)
 ):
     """Ground Agents submit evidence to GroundAgentReport."""
-    if current_user.role != UserRole.GROUND_AGENT and current_user.role != UserRole.ADMIN:
+    # Unified account check using effective_role
+    role = getattr(current_user, "effective_role", current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role))
+    if role not in ["enumerator", "ground_agent", "admin", "superadmin"]:
         raise HTTPException(status_code=403, detail="Only agents can submit reports")
     
     milestone = db.query(Milestone).filter(Milestone.id == milestone_id).first()
@@ -211,7 +219,9 @@ def verify_admin(
     current_user: User = Depends(get_current_user)
 ):
     """Admin verifies the milestone after agent."""
-    if current_user.role != UserRole.ADMIN:
+    # Unified account check using effective_role
+    role = getattr(current_user, "effective_role", current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role))
+    if role not in ["admin", "superadmin"]:
         raise HTTPException(status_code=403, detail="Only admins can verify")
     
     milestone = db.query(Milestone).filter(Milestone.id == milestone_id).first()

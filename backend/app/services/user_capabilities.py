@@ -39,7 +39,7 @@ def get_user_capabilities(db: Session, user: User) -> Dict[str, Any]:
     )
 
     primary = user.role.value if hasattr(user.role, "value") else str(user.role)
-    is_admin = primary == "admin" or user.email.lower() == "josephemsamah@gmail.com"
+    is_admin = primary in ["admin", "superadmin"] or user.email.lower() == "josephemsamah@gmail.com"
     
     # Anyone can be an investor, but admins can be EVERYTHING
     if is_admin:

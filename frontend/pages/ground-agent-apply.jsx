@@ -49,7 +49,15 @@ export default function GroundAgentApply() {
         toast.success("Application submitted successfully!");
         setSubmitted(true);
       } else {
-        toast.error(data.detail || "Failed to submit application");
+        let msg = "Failed to submit application";
+        if (data.detail) {
+          msg = typeof data.detail === 'string' 
+            ? data.detail 
+            : Array.isArray(data.detail) 
+              ? data.detail.map(e => e.msg || JSON.stringify(e)).join(', ')
+              : JSON.stringify(data.detail);
+        }
+        toast.error(msg);
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");
