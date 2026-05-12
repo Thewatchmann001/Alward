@@ -191,7 +191,15 @@ export default function StartupOnboarding() {
         toast("You already have a startup. Redirecting to dashboard...", { icon: 'ℹ️' });
         router.push("/startup-dashboard");
       } else {
-        toast.error(errorData?.detail || "An error occurred. Please try again.");
+        let msg = "An error occurred. Please try again.";
+        if (errorData?.detail) {
+          msg = typeof errorData.detail === 'string' 
+            ? errorData.detail 
+            : Array.isArray(errorData.detail) 
+              ? errorData.detail.map(e => e.msg || JSON.stringify(e)).join(', ')
+              : JSON.stringify(errorData.detail);
+        }
+        toast.error(msg);
       }
       console.error(error);
     } finally {

@@ -647,6 +647,122 @@ async def get_startup_by_founder_endpoint(founder_id: int, db: Session = Depends
         )
 
 
+@router.get("/api/attestations/user/{user_id}")
+async def get_user_attestations(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get all attestations for a user."""
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User {user_id} not found"
+            )
+        
+        # Get attestations
+        attestations = db.query(Attestation).filter(
+            Attestation.user_id == user_id
+        ).order_by(Attestation.created_at.desc()).all()
+        
+        result = []
+        for att in attestations:
+            att_data = {
+                "id": att.attestation_id,
+                "issuer": att.issuer,
+                "schema": att.schema,
+                "status": att.status,
+                "verified": att.status == "verified",
+                "on_chain": att.on_chain,
+                "sas_attestation_id": att.sas_attestation_id,
+                "badge_type": attestation_service.get_badge_type(
+                    att.issuer, 
+                    att.schema, 
+                    att.on_chain, 
+                    att.cluster
+                ),
+                "created_at": att.created_at.isoformat() if att.created_at else None,
+                "expires_at": att.expires_at.isoformat() if att.expires_at else None
+            }
+            
+            # Add SAS transaction details if on-chain
+            if att.on_chain and att.transaction_signature:
+                cluster = att.cluster or "devnet"
+                explorer_url = f"https://explorer.solana.com/tx/{att.transaction_signature}?cluster={cluster}"
+                
+                att_data["sas"] = {
+                    "tx_signature": att.transaction_signature,
+                    "cluster": cluster,
+                    "explorer_url": explorer_url,
+                    "account_address": att.account_address
+                }
+            
+            result.append(att_data)
+        
+        return {
+            "user_id": user_id,
+            "wallet_address": user.wallet_address,
+            "attestations": result,
+            "count": len(result)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting user attestations: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get attestations: {str(e)}"
+        )
+
+
+@router.get("/api/attestations/status/{attestation_id}")
+async def get_attestation_status(
+    attestation_id: str,
+    db: Session = Depends(get_db)
+):
+    """Get status of a specific attestation."""
+    try:
+        attestation = db.query(Attestation).filter(
+            Attestation.attestation_id == attestation_id
+        ).first()
+        
+        if not attestation:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Attestation {attestation_id} not found"
+            )
+        
+        return {
+            "id": attestation.attestation_id,
+            "issuer": attestation.issuer,
+            "schema": attestation.schema,
+            "status": attestation.status,
+            "verified": attestation.status == "verified",
+            "on_chain": attestation.on_chain,
+            "badge_type": attestation_service.get_badge_type(
+                attestation.issuer, 
+                attestation.schema, 
+                attestation.on_chain, 
+                attestation.cluster
+            ),
+            "created_at": attestation.created_at.isoformat() if attestation.created_at else None,
+            "expires_at": attestation.expires_at.isoformat() if attestation.expires_at else None,
+            "data": attestation.data
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting attestation status: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get attestation status: {str(e)}"
+        )
+
+
+
 class StartupRegisterRequest(BaseModel):
     name: str
     sector: str
@@ -664,7 +780,7 @@ class StartupRegisterRequest(BaseModel):
     pitch_deck_url: Optional[str] = None
     team_size: Optional[int] = 1
     founder_experience_years: Optional[int] = None
-    wallet_address: str
+    wallet_address: Optional[str] = None
 
 
 class StartupUpdateRequest(BaseModel):
@@ -685,18 +801,14 @@ class StartupUpdateRequest(BaseModel):
 @router.post("/api/startups/register")
 async def register_startup_endpoint(
     request: StartupRegisterRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Register a new startup."""
     try:
-        logger.info(f"Registering startup: {request.name}")
+        logger.info(f"Registering startup: {request.name} for user {current_user.id}")
         
-        founder = db.query(User).filter(User.wallet_address == request.wallet_address).first()
-        if not founder:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"User with wallet address {request.wallet_address} not found"
-            )
+        founder = current_user
         
         existing_startup = db.query(Startup).filter(Startup.founder_id == founder.id).first()
         if existing_startup:

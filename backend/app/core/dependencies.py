@@ -77,7 +77,10 @@ def require_role(allowed_roles: list):
     Dependency factory for role-based access control.
     Uses effective_role (unified account active role) when set.
     """
-    async def role_checker(current_user: User = Depends(get_current_user)):
+    async def role_checker(
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+    ):
         role = getattr(current_user, "effective_role", None) or (
             current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
         )
@@ -85,12 +88,22 @@ def require_role(allowed_roles: list):
         if role == "startup":
             role = "founder"
         allowed_normalized = [r if r != "startup" else "founder" for r in allowed_roles]
-        if role not in allowed_normalized:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied. Required roles: {allowed_roles}, your active role: {role}"
-            )
-        return current_user
+        
+        # 1. Direct match (active role)
+        if role in allowed_normalized:
+            return current_user
+            
+        # 2. Capability fallback (e.g., admin in investor mode accessing admin tools)
+        for r in allowed_normalized:
+            if user_has_capability(db, current_user, r):
+                # Set effective_role to the matched allowed role so the endpoint sees the right context
+                setattr(current_user, "effective_role", r)
+                return current_user
+
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required roles: {allowed_roles}, your active role: {role}"
+        )
     return role_checker
 
 

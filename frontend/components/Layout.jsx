@@ -6,6 +6,7 @@ import {
   Building2,
   Briefcase,
   RefreshCw,
+  Shield,
 } from "lucide-react";
 import Logo from "./Logo";
 
@@ -13,7 +14,9 @@ const ROLE_LABELS = {
   startup: "Startup", 
   founder: "Founder", 
   investor: "Investor", 
-  enumerator: "Ground Agent" 
+  enumerator: "Ground Agent",
+  admin: "System Admin",
+  superadmin: "Super Admin"
 };
 
 export default function Layout({ children }) {
@@ -27,9 +30,13 @@ export default function Layout({ children }) {
     if (!user) return [];
 
     const links = [];
-    const canInvestor = capabilities?.investor !== false || role === "investor";
-    const canFounder = capabilities?.founder === true || role === "founder" || role === "startup";
+    const canInvestor = capabilities?.investor !== false && (role === "investor" || allowedRoles.includes("investor"));
+    const canFounder = capabilities?.founder === true || role === "founder" || role === "startup" || allowedRoles.includes("founder");
+    const canAdmin = role === "admin" || role === "superadmin" || allowedRoles.includes("admin") || allowedRoles.includes("superadmin");
 
+    if (canAdmin) {
+      links.push({ href: "/admin-dashboard", label: "System Admin", icon: Shield });
+    }
     if (canInvestor) {
       links.push({ href: "/investor-platform", label: "Investments", icon: Briefcase });
     }
@@ -46,7 +53,12 @@ export default function Layout({ children }) {
   const handleRoleSwitch = async (newRole) => {
     const result = await switchRole(newRole);
     if (result.success && result.active_role) {
-      const path = result.active_role === "founder" ? "/startup-dashboard" : "/investor-platform";
+      let path = "/";
+      if (result.active_role === "founder" || result.active_role === "startup") path = "/startup-dashboard";
+      else if (result.active_role === "investor") path = "/investor-platform";
+      else if (result.active_role === "admin" || result.active_role === "superadmin") path = "/admin-dashboard";
+      else if (result.active_role === "enumerator") path = "/ground-agent";
+      
       router.push(path);
     }
   };
