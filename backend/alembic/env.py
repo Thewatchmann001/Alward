@@ -15,7 +15,7 @@ from app.core.config import settings
 # Models must be imported so they register with Base.metadata
 from app.db.models import (
     User, Startup, Investment, Conversation, Message, Employee,
-    Credential, Attestation, Milestone, Evidence, ValidationReport
+    Credential, Attestation, Milestone, Evidence, Proposal, GroundAgentReport
 )
 
 # this is the Alembic Config object, which provides

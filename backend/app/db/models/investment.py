@@ -8,14 +8,14 @@ class Investment(Base):
     __tablename__ = "investments"
 
     id = Column(Integer, primary_key=True, index=True)
-    startup_id = Column(Integer, ForeignKey("startups.id"), nullable=False)
     investor_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    proposal_version_id = Column(Integer, ForeignKey("proposals.id"), nullable=False)
     amount = Column(Float, nullable=False)  # USDC amount
-    tx_signature = Column(String(88), nullable=False)  # Solana transaction signature
-    investment_id = Column(String(50), nullable=True) # ID used on-chain for the PDA
+    escrow_pda_address = Column(String(88), nullable=True)  # Solana PDA address
+    status = Column(String(50), default="pending")
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    startup = relationship("Startup", back_populates="investments")
+    proposal = relationship("Proposal", back_populates="investments")
     investor = relationship("User", back_populates="investments")
 

@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     CERTIFICATE_PROGRAM_ID: str = "D7SYneSxju3iTtJW9HPQMVjQRXgTCZi2vR2UWRk8nTRa"
     STARTUP_PROGRAM_ID: str = "DqwhC5DDZZmL4E1f4YYQJ9R121NurZV8ttk2dfGoYnTj"
     INVESTMENT_PROGRAM_ID: str = "FEQJZDk4afcXbSrRj7iW3PieNtrmeT2Hjtt5BCmoNfRr"
+    ESCROW_PROGRAM_ID: Optional[str] = None
     
     # Blockchain Scripts Path
     BLOCKCHAIN_SCRIPTS_PATH: str = "../blockchain/scripts"

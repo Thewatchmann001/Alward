@@ -15,7 +15,8 @@ from app.db.models.credential import (
 from app.db.models.attestation import Attestation
 from app.db.models.milestone import Milestone, MilestoneStatus
 from app.db.models.evidence import Evidence, EvidenceType, EvidenceSource
-from app.db.models.validation_report import ValidationReport
+from app.db.models.ground_agent_report import GroundAgentReport, ReportStatus
+from app.db.models.proposal import Proposal, ProposalStatus
 from app.db.models.ground_agent_application import GroundAgentApplication, ApplicationStatus
 
 __all__ = [
@@ -39,7 +40,10 @@ __all__ = [
     "Evidence",
     "EvidenceType",
     "EvidenceSource",
-    "ValidationReport",
+    "GroundAgentReport",
+    "ReportStatus",
+    "Proposal",
+    "ProposalStatus",
     "GroundAgentApplication",
     "ApplicationStatus",
 ]

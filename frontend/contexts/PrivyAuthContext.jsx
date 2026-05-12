@@ -159,6 +159,12 @@ export const PrivyAuthProvider = ({ children }) => {
       error.name = 'PrivyNotConfigured';
       throw error;
     }
+
+    // NEW: Check if already authenticated to prevent Privy "already logged in" error
+    if (authenticated && currentHook.user) {
+      console.log('👤 User is already logged in, skipping Privy login call.');
+      return;
+    }
     
     // Check if we have the real login function from privyHook
     const loginFn = currentHook.login;

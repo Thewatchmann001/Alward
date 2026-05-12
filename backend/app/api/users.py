@@ -25,7 +25,7 @@ class UserRegister(BaseModel):
     password: str
     role: UserRole
     wallet_address: Optional[str] = None
-    university: Optional[str] = None  # Required for job seekers
+    university: Optional[str] = None  # Optional field
     company_name: Optional[str] = None  # Required for startups
     
     @field_validator('email')
@@ -117,7 +117,7 @@ class PrivyUserSync(BaseModel):
 
 class SwitchRoleRequest(BaseModel):
     """Request body for switching active role (unified accounts)."""
-    role: str  # "student" | "founder" | "investor"
+    role: str  # "enumerator" | "founder" | "investor"
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -165,12 +165,10 @@ async def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
             detail=error_msg
         )
     
-    # Validate: Job seekers must provide university
-    if user_data.role == UserRole.USER and not user_data.university:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="University is required for job seekers"
-        )
+    # Validate: Ground agents (optional university check removed)
+    if user_data.role == UserRole.GROUND_AGENT and not user_data.university:
+        # We'll allow it for now
+        pass
     
     # Validate: Startups must provide company name
     if user_data.role == UserRole.STARTUP and not user_data.company_name:
@@ -379,6 +377,7 @@ async def sync_privy_user(privy_data: PrivyUserSync, db: Session = Depends(get_d
             data={"sub": str(user.id), "email": user.email, "role": user.role.value, "active_role": active_role},
             expires_delta=access_token_expires
         )
+        logger.info(f"SYNC_SUCCESS_EXISTING: {user.id}")
         return _user_to_response(user, access_token=access_token, capabilities=capabilities, active_role=active_role)
     else:
         # Create new user from Privy
@@ -477,10 +476,10 @@ async def switch_role(
     Switch active role (unified account). Returns new token with active_role set.
     """
     role = (body.role or "").strip().lower()
-    if role not in ("student", "founder", "investor"):
+    if role not in ("enumerator", "founder", "investor", "admin"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="role must be one of: student, founder, investor",
+            detail="role must be one of: enumerator, founder, investor, admin",
         )
     if not user_has_capability(db, current_user, role):
         if role == "founder":

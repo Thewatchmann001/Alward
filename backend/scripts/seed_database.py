@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
-from app.db.models import User, Startup, Job, Investment
+from app.db.models import User, Startup, Investment
 from app.core.security import get_password_hash
 from app.db.models.user import UserRole
 from app.blockchain.startup_client import StartupClient
@@ -24,7 +24,7 @@ def seed_database():
     db: Session = SessionLocal()
     
     try:
-        print("🌱 Seeding database...")
+        print("Seeding database...")
         
         # Create Users - Diverse professions
         print("Creating users...")
@@ -34,7 +34,7 @@ def seed_database():
                 "full_name": "Alice Johnson",
                 "email": "alice@example.com",
                 "password": "password123",
-                "role": UserRole.JOB_SEEKER,
+                "role": UserRole.USER,
                 "wallet_address": "4mq4nxkHic2TomA529TnYAcoAnPGaweayX5UVZzK7yDf",
                 "university": "Fourah Bay College, University of Sierra Leone",
             },
@@ -43,7 +43,7 @@ def seed_database():
                 "full_name": "Fatmata Bangura",
                 "email": "fatmata@example.com",
                 "password": "password123",
-                "role": UserRole.JOB_SEEKER,
+                "role": UserRole.USER,
                 "wallet_address": "AH5CyerJwBPaVbimNJNHmyo9HTUi85rMrqTftQA2QNT5",
                 "university": "College of Medicine and Allied Health Sciences",
             },
@@ -52,7 +52,7 @@ def seed_database():
                 "full_name": "Mohamed Kamara",
                 "email": "mohamed@example.com",
                 "password": "password123",
-                "role": UserRole.JOB_SEEKER,
+                "role": UserRole.USER,
                 "wallet_address": "GHLf67UbZyhTQReGVwF1MVDCvJTphbgKE4fpJ6xG9MXn",
                 "university": "Fourah Bay College, University of Sierra Leone",
             },
@@ -61,7 +61,7 @@ def seed_database():
                 "full_name": "Mariatu Sesay",
                 "email": "mariatu@example.com",
                 "password": "password123",
-                "role": UserRole.JOB_SEEKER,
+                "role": UserRole.USER,
                 "wallet_address": "BW7XpTzMhgkVNPRuF6S1oApA24E3XADzewok6XxdZEpv",
                 "university": "Njala University",
             },
@@ -70,7 +70,7 @@ def seed_database():
                 "full_name": "Ibrahim Koroma",
                 "email": "ibrahim@example.com",
                 "password": "password123",
-                "role": UserRole.JOB_SEEKER,
+                "role": UserRole.USER,
                 "wallet_address": "3ifwb7tjkFMibUH6t6Y5vr9WSUpHSDy6YFqiUcQF4C5K",
                 "university": "Fourah Bay College, University of Sierra Leone",
             },
@@ -79,7 +79,7 @@ def seed_database():
                 "full_name": "Aminata Conteh",
                 "email": "aminata@example.com",
                 "password": "password123",
-                "role": UserRole.JOB_SEEKER,
+                "role": UserRole.USER,
                 "wallet_address": "nao8kDPUhVz1qJeJ8rkKzG85zKgK7yToNLNTqoE9gbZ",
                 "university": "Fourah Bay College, University of Sierra Leone",
             },
@@ -133,7 +133,7 @@ def seed_database():
                     full_name=user_data["full_name"],
                     email=user_data["email"],
                     hashed_password=get_password_hash(user_data["password"]),
-                    role=user_data["role"],
+                    role=user_data["role"].value if hasattr(user_data["role"], "value") else user_data["role"],
                     wallet_address=user_data["wallet_address"],
                     university=user_data.get("university"),
                     company_name=user_data.get("company_name"),
@@ -163,7 +163,7 @@ def seed_database():
                         if not wallet_taken:
                             existing.wallet_address = new_wallet
                             updated = True
-                            print(f"  Updated wallet for {existing.email}: {current_wallet[:20] if current_wallet else 'None'}... → {new_wallet[:20]}...")
+                            print(f"  Updated wallet for {existing.email}: {current_wallet[:20] if current_wallet else 'None'}... -> {new_wallet[:20]}...")
                 if user_data.get("university") and not existing.university:
                     existing.university = user_data.get("university")
                     updated = True
@@ -175,7 +175,7 @@ def seed_database():
                 users.append(existing)
         
         db.commit()
-        print(f"✅ Created/Updated {len(users)} users ({updated_count} updated)")
+        print(f"Created/Updated {len(users)} users ({updated_count} updated)")
         
         # Certificates removed - not part of core solutions
         # Education information is now stored in User.university field and CV education section
@@ -379,14 +379,14 @@ def seed_database():
                                 existing.startup_id = blockchain_result.get("startup_id", existing.startup_id)
                                 existing.transaction_signature = blockchain_result.get("transaction_signature")
                                 
-                                print(f"  ✅ Registered on-chain: {blockchain_result.get('startup_id')}")
+                                print(f"  Registered on-chain: {blockchain_result.get('startup_id')}")
                                 if blockchain_result.get('transaction_signature'):
                                     print(f"     Transaction: {blockchain_result.get('transaction_signature')[:30]}...")
                                 
                                 registered_count += 1
                                 time.sleep(2)  # Rate limiting
                             except Exception as e:
-                                print(f"  ⚠️  Failed to register on-chain: {str(e)}")
+                                print(f"  Warning: Failed to register on-chain: {str(e)}")
                                 print(f"     Keeping existing data...")
                 
                 # Update other fields
@@ -398,55 +398,18 @@ def seed_database():
                         setattr(existing, key, value)
                 
                 db.commit()
-                print(f"  ✅ Updated {startup_data['name']} with complete information")
+                print(f"  Updated {startup_data['name']} with complete information")
             else:
-                # Get founder to get wallet address
-                founder = db.query(User).filter(User.id == startup_data["founder_id"]).first()
+                if False: # Disable real blockchain registration for seeding
+                    # founder = db.query(User).filter(User.id == startup_data["founder_id"]).first()
+                    pass
                 
-                if founder and founder.wallet_address:
-                    # Validate wallet address before attempting registration
-                    from app.utils.helpers import validate_solana_address
-                    if not validate_solana_address(founder.wallet_address):
-                        print(f"  ⚠️  Invalid wallet address for {startup_data['name']}: {founder.wallet_address[:20]}...")
-                        print(f"     Skipping blockchain registration...")
-                        if not startup_data.get("startup_id"):
-                            startup_data["startup_id"] = f"STARTUP-{startup_data['founder_id']}-{int(time.time())}"
-                        startup_data["transaction_signature"] = None
-                    else:
-                        try:
-                            # Register startup on blockchain (this generates the startup_id)
-                            print(f"  Registering {startup_data['name']} on blockchain...")
-                            blockchain_result = startup_client.register_startup(
-                                startup_name=startup_data["name"],
-                                sector=startup_data["sector"],
-                                founder_address=founder.wallet_address
-                            )
-                            
-                            # Use blockchain-generated startup_id and transaction signature
-                            startup_data["startup_id"] = blockchain_result.get("startup_id")
-                            startup_data["transaction_signature"] = blockchain_result.get("transaction_signature")
-                            
-                            print(f"  ✅ Registered on-chain: {blockchain_result.get('startup_id')}")
-                            if blockchain_result.get('transaction_signature'):
-                                print(f"     Transaction: {blockchain_result.get('transaction_signature')[:20]}...")
-                            
-                            registered_count += 1
-                            
-                            # Small delay to avoid rate limiting
-                            time.sleep(2)
-                        except Exception as e:
-                            print(f"  ⚠️  Failed to register {startup_data['name']} on-chain: {str(e)}")
-                            print(f"     Continuing with database-only registration...")
-                            # Generate a fallback startup_id if blockchain fails
-                            if not startup_data.get("startup_id"):
-                                startup_data["startup_id"] = f"STARTUP-{startup_data['founder_id']}-{int(time.time())}"
-                            startup_data["transaction_signature"] = None
-                else:
-                    print(f"  ⚠️  Founder {startup_data['founder_id']} has no wallet address, skipping blockchain registration")
-                    # Generate a fallback startup_id
-                    if not startup_data.get("startup_id"):
-                        startup_data["startup_id"] = f"STARTUP-{startup_data['founder_id']}-{int(time.time())}"
-                    startup_data["transaction_signature"] = None
+                print(f"  Warning: Skipping blockchain registration for {startup_data['name']}, using mock ID.")
+                # Generate a fallback startup_id
+                if not startup_data.get("startup_id"):
+                    import uuid
+                    startup_data["startup_id"] = f"STARTUP-{startup_data['founder_id']}-{str(uuid.uuid4())[:8]}"
+                startup_data["transaction_signature"] = f"mock_sig_{int(time.time())}_{uuid.uuid4().hex[:6]}"
                 
                 # Create startup in database
                 startup = Startup(**startup_data)
@@ -469,9 +432,9 @@ def seed_database():
                 removed_count += 1
         db.commit()
         if removed_count > 0:
-            print(f"  ✅ Removed {removed_count} incomplete startups")
+            print(f"  Removed {removed_count} incomplete startups")
         
-        print(f"✅ Created/Updated {len(startups_data)} startups ({registered_count} registered on-chain)")
+        print(f"Created/Updated {len(startups_data)} startups ({registered_count} registered on-chain)")
         
         # Create Jobs - DEPRECATED: Jobs now come from external integrations only (RemoteOK, Freelancer.com)
         # Jobs are NOT stored in the database anymore
@@ -604,7 +567,7 @@ def seed_database():
         #             db.add(job)
         #
         #         db.commit()
-        #         print(f"✅ Created {len(jobs_data)} jobs")
+        #         print(f"Created {len(jobs_data)} jobs")
         
         # Create Investments - Skip mock investments
         # Real investments should be made through the UI which will create proper blockchain transactions
@@ -612,15 +575,15 @@ def seed_database():
         # Note: Investments are now created through the /api/startups/{startup_id}/invest endpoint
         # which properly records them on the blockchain with real transaction signatures
         
-        print("\n🎉 Database seeding completed successfully!")
-        print("\n📋 Sample Login Credentials:")
-        print("  Job Seekers:")
-        print("    - alice@example.com / password123 (Tech - Fourah Bay College)")
-        print("    - fatmata@example.com / password123 (Healthcare - College of Medicine)")
-        print("    - mohamed@example.com / password123 (Education - Fourah Bay College)")
-        print("    - mariatu@example.com / password123 (Agriculture - Njala University)")
-        print("    - ibrahim@example.com / password123 (Business - Fourah Bay College)")
-        print("    - aminata@example.com / password123 (Engineering - Fourah Bay College)")
+        print("\nDatabase seeding completed successfully!")
+        print("\nSample Login Credentials:")
+        print("  Users:")
+        print("    - alice@example.com / password123 (Fourah Bay College)")
+        print("    - fatmata@example.com / password123 (College of Medicine)")
+        print("    - mohamed@example.com / password123 (Fourah Bay College)")
+        print("    - mariatu@example.com / password123 (Njala University)")
+        print("    - ibrahim@example.com / password123 (Fourah Bay College)")
+        print("    - aminata@example.com / password123 (Fourah Bay College)")
         print("  Startup Founders:")
         print("    - david@startup.com / password123 (TechInnovate SL, AgriTech, FinTech, BuildSL)")
         print("    - hawa@startup.com / password123 (HealthConnect, EduBridge, Sierra Tourism)")
@@ -629,11 +592,11 @@ def seed_database():
         print("    - kadiatu@investor.com / password123")
         print("  System Admin:")
         print("    - josephemsamah@gmail.com / password123")
-        print("\n💡 Note: Certificates are no longer part of the system.")
+        print("\nNote: Certificates are no longer part of the system.")
         print("   Education information is stored in User.university and CV education sections.")
         
     except Exception as e:
-        print(f"❌ Error seeding database: {e}")
+        print(f"Error seeding database: {e}")
         db.rollback()
         raise
     finally:

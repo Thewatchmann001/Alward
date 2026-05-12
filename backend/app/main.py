@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect # Forced reload v2
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
@@ -16,6 +16,7 @@ from app.utils.logger import logger
 from app.api import users
 from app.api import messages
 from app.api import auth
+from app.api import proposals
 from app.api.on_chain import router as on_chain_router
 from app.api.websocket import manager
 from app.core.exceptions import InvalidCredentials, UserNotFound, AlwardException
@@ -34,12 +35,19 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS middleware
+# Security middleware (order matters: CSRF first, then rate limiting)
+# app.add_middleware(CSRFProtectionMiddleware)
+# app.add_middleware(RateLimitMiddleware)
+
+# CORS middleware - added last so it runs FIRST as the outermost layer
 # Note: When allow_credentials=True, cannot use wildcard "*" for allow_origins
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://0.0.0.0:3000",
+    "http://localhost:5173",  # Vite default
+    "http://127.0.0.1:5173",
+    "http://172.20.10.2:3000", # Network IP from .env
 ]
 if getattr(settings, "CORS_ORIGINS", None):
     origins.extend(x.strip() for x in settings.CORS_ORIGINS.split(",") if x.strip())
@@ -51,14 +59,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Security middleware (order matters: CSRF first, then rate limiting)
-app.add_middleware(CSRFProtectionMiddleware)
-app.add_middleware(RateLimitMiddleware)
-
 # Include routers
 app.include_router(users.router)
 app.include_router(auth.router)
 app.include_router(messages.router)
+app.include_router(proposals.router)
 app.include_router(on_chain_router)   # On-chain sync endpoints
 app.include_router(main_router)
 

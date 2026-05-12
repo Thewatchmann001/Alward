@@ -19,7 +19,7 @@ from app.db.session import get_db
 from app.db.models import (
     User, Startup, Investment, Employee, Attestation, 
     GroundAgentApplication, ApplicationStatus, UserRole,
-    Milestone, ValidationReport, Evidence
+    Milestone, GroundAgentReport, Evidence
 )
 from app.core.config import settings
 from app.utils.logger import logger
@@ -234,7 +234,7 @@ async def get_pending_admin_milestones(
         for m in milestones:
             startup = db.query(Startup).filter(Startup.id == m.startup_id).first()
             # Fetch validation reports
-            reports = db.query(ValidationReport).filter(ValidationReport.milestone_id == m.id).all()
+            reports = db.query(GroundAgentReport).filter(GroundAgentReport.milestone_id == m.id).all()
             
             # Since milestone index is just its position in the startup's milestones, let's calculate it
             startup_milestones = db.query(Milestone).filter(Milestone.startup_id == startup.id).order_by(Milestone.created_at).all()
@@ -326,6 +326,7 @@ async def mark_milestone_alward_approved(
         logger.error(f"Error marking milestone as alward approved: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/api/startups")
 @router.get("/api/startups/list")
 async def list_startups(
     skip: int = 0,

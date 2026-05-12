@@ -8,11 +8,11 @@ Determines which roles a user can act as:
 """
 from typing import Dict, Any, List
 from sqlalchemy.orm import Session
-from app.db.models import User, Startup
+from app.db.models import User, Startup, GroundAgentApplication, ApplicationStatus
 
 
 # Role values used in API and frontend (match UserRole values)
-JOB_SEEKER_ROLE = "student"
+GROUND_AGENT_ROLE = "enumerator"
 FOUNDER_ROLE = "founder"
 INVESTOR_ROLE = "investor"
 
@@ -20,30 +20,48 @@ INVESTOR_ROLE = "investor"
 def get_user_capabilities(db: Session, user: User) -> Dict[str, Any]:
     """
     Compute which roles this user can act as (unified account capabilities).
-
-    Returns:
-        {
-            "job_seeker": True,
-            "founder": bool,  # True if user has at least one startup
-            "investor": True,
-            "allowed_roles": ["student", "founder", "investor"],  # roles they can switch to
-            "primary_role": "student"  # user.role value
-        }
     """
     has_startup = (
         db.query(Startup.id).filter(Startup.founder_id == user.id).limit(1).first()
         is not None
     )
+    
+    # Check if user is an approved ground agent
+    is_ground_agent = (
+        db.query(GroundAgentApplication.id)
+        .filter(
+            GroundAgentApplication.user_id == user.id,
+            GroundAgentApplication.status == ApplicationStatus.APPROVED
+        )
+        .limit(1)
+        .first()
+        is not None
+    )
+
     primary = user.role.value if hasattr(user.role, "value") else str(user.role)
-    allowed = [JOB_SEEKER_ROLE, INVESTOR_ROLE]
+    is_admin = primary == "admin" or user.email.lower() == "josephemsamah@gmail.com"
+    
+    # Anyone can be an investor, but admins can be EVERYTHING
+    if is_admin:
+        allowed = [INVESTOR_ROLE, FOUNDER_ROLE, GROUND_AGENT_ROLE, "admin"]
+    else:
+        allowed = [INVESTOR_ROLE]
+    
+    # Can be a founder if has a startup
     if has_startup:
         allowed.append(FOUNDER_ROLE)
+    
+    # Can be a ground agent if approved or if it's their primary role
+    if is_ground_agent or primary == GROUND_AGENT_ROLE:
+        allowed.append(GROUND_AGENT_ROLE)
+        
     # Dedupe and keep order
     allowed = list(dict.fromkeys(allowed))
     return {
-        "job_seeker": True,
-        "founder": has_startup,
+        "ground_agent": is_ground_agent or primary == GROUND_AGENT_ROLE or is_admin,
+        "founder": has_startup or is_admin,
         "investor": True,
+        "admin": is_admin,
         "allowed_roles": allowed,
         "primary_role": primary,
     }

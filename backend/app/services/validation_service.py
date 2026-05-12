@@ -1,6 +1,6 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from app.db.models import Milestone, ValidationReport, MilestoneStatus
+from app.db.models import Milestone, GroundAgentReport, MilestoneStatus
 from app.services.risk_scoring_engine import RiskScoringEngine
 from datetime import datetime
 
@@ -18,12 +18,12 @@ class ValidationService:
         findings_summary: str,
         visit_date: Optional[datetime] = None,
         location_verified: Optional[str] = None
-    ) -> ValidationReport:
+    ) -> GroundAgentReport:
         milestone = db.query(Milestone).filter(Milestone.id == milestone_id).first()
         if not milestone:
             raise ValueError("Milestone not found")
 
-        report = ValidationReport(
+        report = GroundAgentReport(
             milestone_id=milestone_id,
             agent_id=agent_id,
             confidence_score=confidence_score,

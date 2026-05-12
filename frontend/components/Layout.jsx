@@ -9,7 +9,12 @@ import {
 } from "lucide-react";
 import Logo from "./Logo";
 
-const ROLE_LABELS = { student: "Job seeker", founder: "Founder", investor: "Investor" };
+const ROLE_LABELS = { 
+  startup: "Startup", 
+  founder: "Founder", 
+  investor: "Investor", 
+  enumerator: "Ground Agent" 
+};
 
 export default function Layout({ children }) {
   const { user, logout, isAuthenticated, activeRole, capabilities, switchRole } = useAuth();

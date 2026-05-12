@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      if (privyAuth && privyAuth.authenticated && privyAuth.user && !user) {
+      if (privyAuth && privyAuth.authenticated && privyAuth.user && !user && !token) {
         try {
           console.log('🔄 Starting Privy user sync...');
           // Get Privy user data
@@ -153,9 +153,13 @@ export const AuthProvider = ({ children }) => {
               if (correctRole === 'founder' || correctRole === 'startup') {
                 correctRole = 'startup';
                 roleDisplayName = 'Startup';
+              } else if (correctRole === 'enumerator' || correctRole === 'ground agent') {
+                correctRole = 'enumerator';
+                roleDisplayName = 'Ground Agent';
               } else if (correctRole === 'student' || correctRole === 'job seeker') {
-                correctRole = 'student';
-                roleDisplayName = 'Job Seeker';
+                // Keep for legacy compatibility if needed, but map to Ground Agent
+                correctRole = 'enumerator';
+                roleDisplayName = 'Ground Agent';
               } else if (correctRole === 'investor') {
                 roleDisplayName = 'Investor';
               }
@@ -164,8 +168,10 @@ export const AuthProvider = ({ children }) => {
               // Map display name back to role value
               if (roleDisplayName.toLowerCase().includes('startup') || roleDisplayName.toLowerCase().includes('founder')) {
                 correctRole = 'startup';
+              } else if (roleDisplayName.toLowerCase().includes('ground') || roleDisplayName.toLowerCase().includes('enumerator')) {
+                correctRole = 'enumerator';
               } else if (roleDisplayName.toLowerCase().includes('job') || roleDisplayName.toLowerCase().includes('student')) {
-                correctRole = 'student';
+                correctRole = 'enumerator';
               } else if (roleDisplayName.toLowerCase().includes('investor')) {
                 correctRole = 'investor';
               }
@@ -435,7 +441,7 @@ export const AuthProvider = ({ children }) => {
     // Map frontend role to backend role
     let backendRole = role;
     if (role === 'startup') backendRole = 'founder';
-    if (role === 'ground agent') backendRole = 'enumerator';
+    if (role === 'ground agent' || role === 'Ground Agent') backendRole = 'enumerator';
     
     try {
       const res = await authAPI.switchRole(backendRole);

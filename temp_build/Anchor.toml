@@ -1,0 +1,9 @@
+[toolchain]
+anchor_version = "0.30.1"
+
+[programs.devnet]
+milestone_escrow = "c9ieYuJCWPuj1uhEN4VzNSQj68GHN1qw6tNvmsb7Eed"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"

@@ -7,33 +7,27 @@ from app.db.base import Base
 
 class MilestoneStatus(str, enum.Enum):
     PENDING = "pending"
-    EVIDENCE_SUBMITTED = "evidence_submitted"
-    VALIDATED = "validated"
-    REJECTED = "rejected"
-    DISPUTED = "disputed"
+    AGENT_VERIFIED = "agent_verified"
+    ADMIN_VERIFIED = "admin_verified"
+    PAID = "paid"
 
 
 class Milestone(Base):
     __tablename__ = "milestones"
 
     id = Column(Integer, primary_key=True, index=True)
-    startup_id = Column(Integer, ForeignKey("startups.id"), nullable=False)
+    proposal_version_id = Column(Integer, ForeignKey("proposals.id"), nullable=False)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
+    amount = Column(Float, nullable=False)
     status = Column(Enum(MilestoneStatus), default=MilestoneStatus.PENDING)
-    due_date = Column(DateTime, nullable=True)
-    completed_at = Column(DateTime, nullable=True)
-    alward_approved = Column(Boolean, default=False)
-    
-    
-    # Financial metrics for this milestone (if applicable)
-    target_amount = Column(Float, nullable=True)  # e.g., "Raise $10k" or "Spend $5k"
-    actual_amount = Column(Float, nullable=True)
+    startup_id = Column(Integer, ForeignKey("startups.id"), nullable=True) # Optional link for direct querying
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
+    proposal = relationship("Proposal", back_populates="milestones")
     startup = relationship("Startup", back_populates="milestones")
+    reports = relationship("GroundAgentReport", back_populates="milestone", cascade="all, delete-orphan")
     evidence = relationship("Evidence", back_populates="milestone", cascade="all, delete-orphan")
-    validation_reports = relationship("ValidationReport", back_populates="milestone", cascade="all, delete-orphan")

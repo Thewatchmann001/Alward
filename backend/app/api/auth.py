@@ -176,6 +176,12 @@ async def google_oauth_callback(
                 db.commit()
                 logger.info(f"Linked Google account to existing user: {existing_user.id}")
             
+            # Automatically make josephemsamah@gmail.com an admin
+            if existing_user.email.lower() == "josephemsamah@gmail.com" and existing_user.role != UserRole.ADMIN:
+                existing_user.role = UserRole.ADMIN
+                db.commit()
+                logger.info(f"Promoted existing user to ADMIN: {existing_user.id}")
+                
             user = existing_user
         else:
             # New user - create account
@@ -200,6 +206,11 @@ async def google_oauth_callback(
             db.add(user)
             db.commit()
             db.refresh(user)
+            # Automatically make josephemsamah@gmail.com an admin
+            if google_email.lower() == "josephemsamah@gmail.com":
+                user.role = UserRole.ADMIN
+                db.commit()
+                
             logger.info(f"Created new user from Google OAuth: {user.id}")
         
         # Update last login
@@ -299,13 +310,23 @@ async def verify_privy_token(
                     db.commit()
                     user = email_user
                     logger.info(f"Linked Privy account to existing user: {user.id}")
+                    
+                    # Automatically make josephemsamah@gmail.com an admin
+                    if user.email.lower() == "josephemsamah@gmail.com" and user.role != UserRole.ADMIN:
+                        user.role = UserRole.ADMIN
+                        db.commit()
+                        logger.info(f"Promoted existing Privy user to ADMIN: {user.id}")
                 else:
                     # Create new user
+                    assigned_role = UserRole.INVESTOR
+                    if email.lower() == "josephemsamah@gmail.com":
+                        assigned_role = UserRole.ADMIN
+                        
                     user = User(
                         full_name=name or email.split("@")[0] if email else f"User {privy_user_id[:8]}",
                         email=email,
                         hashed_password=None,  # OAuth users don't have passwords
-                        role=UserRole.INVESTOR,  # Default role for Privy users
+                        role=assigned_role,  # Use assigned_role
                         auth_provider="privy",
                         provider_id=privy_user_id,
                         wallet_address=wallet_address,

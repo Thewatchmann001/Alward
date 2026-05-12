@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Initialize TrustBridge database tables"""
+"""Initialize ALWARD database tables"""
 import sys
 import os
 
@@ -10,11 +10,13 @@ from app.db.session import engine
 from app.db.base import Base
 from app.db.models import (
     User, Startup, Investment, Employee, Attestation, 
-    Milestone, ValidationReport, GroundAgentApplication
+    Milestone, GroundAgentReport, GroundAgentApplication,
+    Proposal, ProposalStatus, Evidence, Conversation, Message,
+    Credential, TrustSignal
 )
 
 def init_db():
-    print("Initializing TrustBridge database...")
+    print("Initializing TrustBridge database (PostgreSQL)...")
     
     # Create all tables
     Base.metadata.create_all(bind=engine)

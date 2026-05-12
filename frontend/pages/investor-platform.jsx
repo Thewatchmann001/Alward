@@ -15,6 +15,7 @@ import {
   LogOut, Shield, TrendingUp, Search, Filter,
   ChevronRight, Globe, ArrowLeft, Zap, Lock,
   ExternalLink, BarChart2, Users, DollarSign,
+  Target, CheckCircle
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Logo from "../components/Logo";
@@ -27,6 +28,7 @@ export default function InvestorPlatformPage() {
 
   const [startups, setStartups] = useState([]);
   const [selectedStartup, setSelectedStartup] = useState(null);
+  const [proposals, setProposals] = useState([]);
   const [showInvest, setShowInvest] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -37,6 +39,28 @@ export default function InvestorPlatformPage() {
     if (!user) { router.push("/login"); return; }
     fetchStartups();
   }, [user]);
+
+  useEffect(() => {
+    if (selectedStartup) {
+      fetchProposals(selectedStartup.id);
+    }
+  }, [selectedStartup]);
+
+  const fetchProposals = async (startupId) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${apiUrl}/api/proposals`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // filter by startup ID since the endpoint returns all non-draft proposals
+        setProposals(data.filter(p => p.startup_id === startupId));
+      }
+    } catch (e) {
+      toast.error("Failed to load proposals.");
+    }
+  };
 
   const fetchStartups = async () => {
     try {
@@ -239,16 +263,96 @@ export default function InvestorPlatformPage() {
             </div>
           )}
 
-          <motion.button
-            onClick={() => setShowInvest(true)}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            className="w-full py-6 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 text-white font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(37,99,235,0.3)]"
-          >
-            <Shield size={18} />
-            Invest via Milestone Escrow
-            <ChevronRight size={16} />
-          </motion.button>
+          {/* Proposals Section */}
+          <div className="mt-12">
+            <h2 className="text-xl font-black uppercase tracking-widest text-slate-300 mb-6 flex items-center gap-2">
+              <Target size={20} className="text-emerald-400" />
+              Investment Proposals
+            </h2>
+            {proposals.length === 0 ? (
+              <div className="p-8 text-center text-slate-500 bg-white/5 rounded-2xl border border-white/5">
+                No active proposals.
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {proposals.map(p => (
+                  <div key={p.id} className="p-8 rounded-[2rem] bg-white/[0.03] border border-white/5 hover:border-emerald-500/30 transition-all">
+                    <div className="flex justify-between items-start mb-6">
+                      <div>
+                        <span className={`text-[10px] font-black uppercase px-3 py-1.5 rounded-lg border ${
+                          p.status === 'locked' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 
+                          'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                        }`}>
+                          {p.status.replace('_', ' ')}
+                        </span>
+                        <h3 className="text-2xl font-black italic mt-4 text-white">Version {p.version_number}</h3>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Funding Goal</p>
+                        <p className="text-2xl font-black italic text-emerald-400">${p.funding_goal.toLocaleString()}</p>
+                      </div>
+                    </div>
+                    
+                    {p.status === 'pending_admin' && (
+                      <motion.button
+                        onClick={async () => {
+                          try {
+                            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                            const res = await fetch(`${apiUrl}/api/proposals/${p.id}/approve`, {
+                              method: "PUT",
+                              headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+                            });
+                            if (res.ok) {
+                              toast.success("Proposal Approved and Locked!");
+                              fetchProposals(selectedStartup.id);
+                            } else {
+                              toast.error("Approval failed");
+                            }
+                          } catch (e) {
+                            toast.error("Network error");
+                          }
+                        }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full mb-6 py-4 rounded-xl bg-emerald-500 text-black font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:bg-emerald-400 transition-colors"
+                      >
+                        <CheckCircle size={18} />
+                        Approve Proposal Version
+                      </motion.button>
+                    )}
+
+                    {p.status === 'locked' && (
+                      <motion.button
+                        onClick={() => setShowInvest(true)}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 text-white font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(37,99,235,0.3)] mb-6"
+                      >
+                        <Shield size={18} />
+                        Invest via Milestone Escrow
+                        <ChevronRight size={16} />
+                      </motion.button>
+                    )}
+
+                    <div className="border-t border-white/10 pt-6">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">Milestones</p>
+                      <div className="space-y-4">
+                        {p.milestones?.map((m, idx) => (
+                          <div key={idx} className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/5">
+                            <div>
+                              <p className="font-bold text-white text-sm">{m.title}</p>
+                              <p className="text-xs text-slate-400 mt-1">{m.description}</p>
+                            </div>
+                            <p className="text-emerald-400 font-bold">${m.amount.toLocaleString()}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </main>
       </div>
     );

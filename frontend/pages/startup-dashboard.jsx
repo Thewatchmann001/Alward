@@ -5,7 +5,7 @@ import Chat from "../components/Chat";
 import CredibilityImprovement from "../investor/CredibilityImprovement";
 import AttestationStatus from "../components/attestation/AttestationStatus";
 import VerificationFlow from "../components/attestation/VerificationFlow";
-import MilestoneManager from "../components/startup/MilestoneManager";
+import ProposalManager from "../components/startup/ProposalManager";
 import {
   Shield,
   TrendingUp,
@@ -288,7 +288,7 @@ export default function StartupDashboard() {
                 <VerificationFlow user={user} onComplete={fetchStartupData} />
               </div>
             )}
-            {activeTab === "milestones" && <MilestoneManager startupId={startup.id} />}
+            {activeTab === "milestones" && <ProposalManager startupId={startup.id} />}
             {activeTab === "messages" && (
               <div className="glass-card-premium rounded-[3rem] overflow-hidden flex flex-col h-[700px]">
                 {selectedConversation ? (

@@ -59,7 +59,7 @@ class Startup(Base):
 
     # Relationships
     founder = relationship("User", back_populates="startups")
-    investments = relationship("Investment", back_populates="startup", cascade="all, delete-orphan")
-    employees = relationship("Employee", back_populates="startup", cascade="all, delete-orphan")
+    proposals = relationship("Proposal", back_populates="startup", cascade="all, delete-orphan")
     milestones = relationship("Milestone", back_populates="startup", cascade="all, delete-orphan")
+    employees = relationship("Employee", back_populates="startup", cascade="all, delete-orphan")
 

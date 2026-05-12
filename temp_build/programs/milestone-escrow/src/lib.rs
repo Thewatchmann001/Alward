@@ -78,8 +78,7 @@ pub mod milestone_escrow {
         record.amount_usdc = amount_usdc;
         record.timestamp = clock.unix_timestamp;
         record.status = InvestmentStatus::Active;
-        let (_, bump) = Pubkey::find_program_address(&[b"investment", investment_id.as_bytes()], ctx.program_id);
-        record.bump = bump;
+        record.bump = ctx.bumps.investment_record;
 
         config.total_invested = config.total_invested.checked_add(amount_usdc)
             .ok_or(AlwardError::Overflow)?;
@@ -122,8 +121,7 @@ pub mod milestone_escrow {
         milestone.confidence_score = confidence_score;
         milestone.evidence_hash = evidence_hash;
         milestone.agent_approved = true;
-        let (_, bump) = Pubkey::find_program_address(&[b"milestone", startup_id.as_bytes(), &[milestone_index]], ctx.program_id);
-        milestone.bump = bump;
+        milestone.bump = ctx.bumps.milestone_record;
 
         check_and_validate_milestone(milestone, config)?;
         Ok(())
@@ -149,8 +147,7 @@ pub mod milestone_escrow {
         }
 
         milestone.alward_approved = true;
-        let (_, bump) = Pubkey::find_program_address(&[b"milestone", startup_id.as_bytes(), &[milestone_index]], ctx.program_id);
-        milestone.bump = bump;
+        milestone.bump = ctx.bumps.milestone_record;
 
         check_and_validate_milestone(milestone, config)?;
         Ok(())
@@ -181,8 +178,7 @@ pub mod milestone_escrow {
         }
 
         milestone.investor_approved = true;
-        let (_, bump) = Pubkey::find_program_address(&[b"milestone", startup_id.as_bytes(), &[milestone_index]], ctx.program_id);
-        milestone.bump = bump;
+        milestone.bump = ctx.bumps.milestone_record;
 
         check_and_validate_milestone(milestone, config)?;
         Ok(())
@@ -325,8 +321,6 @@ pub struct InitializeFounderConfig<'info> {
 pub struct InvestInEscrow<'info> {
     #[account(mut, seeds = [b"founder_config", startup_id.as_bytes()], bump = founder_config.bump)]
     pub founder_config: Account<'info, FounderEscrowConfig>,
-    #[account(address = founder_config.usdc_mint)]
-    pub usdc_mint: Account<'info, token::Mint>,
     #[account(
         init,
         payer = investor,
@@ -340,7 +334,7 @@ pub struct InvestInEscrow<'info> {
         payer = investor,
         seeds = [b"escrow_vault", startup_id.as_bytes()],
         bump,
-        token::mint = usdc_mint,
+        token::mint = founder_config.usdc_mint,
         token::authority = founder_config,
     )]
     pub escrow_vault: Account<'info, TokenAccount>,
@@ -413,15 +407,13 @@ pub struct InvestorApproveMilestone<'info> {
 pub struct ReleaseTranche<'info> {
     #[account(mut, seeds = [b"founder_config", startup_id.as_bytes()], bump = founder_config.bump)]
     pub founder_config: Account<'info, FounderEscrowConfig>,
-    #[account(address = founder_config.usdc_mint)]
-    pub usdc_mint: Account<'info, token::Mint>,
     #[account(mut, seeds = [b"milestone", startup_id.as_bytes(), &[milestone_index]], bump = milestone_record.bump)]
     pub milestone_record: Account<'info, MilestoneRecord>,
     #[account(
         mut,
         seeds = [b"escrow_vault", startup_id.as_bytes()],
         bump,
-        token::mint = usdc_mint,
+        token::mint = founder_config.usdc_mint,
         token::authority = founder_config,
     )]
     pub escrow_vault: Account<'info, TokenAccount>,
@@ -436,15 +428,13 @@ pub struct ReleaseTranche<'info> {
 pub struct RefundInvestor<'info> {
     #[account(seeds = [b"founder_config", startup_id.as_bytes()], bump = founder_config.bump)]
     pub founder_config: Account<'info, FounderEscrowConfig>,
-    #[account(address = founder_config.usdc_mint)]
-    pub usdc_mint: Account<'info, token::Mint>,
     #[account(mut)]
     pub investment_record: Account<'info, InvestmentRecord>,
     #[account(
         mut,
         seeds = [b"escrow_vault", startup_id.as_bytes()],
         bump,
-        token::mint = usdc_mint,
+        token::mint = founder_config.usdc_mint,
         token::authority = founder_config,
     )]
     pub escrow_vault: Account<'info, TokenAccount>,

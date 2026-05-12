@@ -1,6 +1,6 @@
 from typing import Dict, Any, List
 from sqlalchemy.orm import Session
-from app.db.models import Startup, Milestone, Evidence, ValidationReport, MilestoneStatus, EvidenceSource
+from app.db.models import Startup, Milestone, Evidence, GroundAgentReport, MilestoneStatus, EvidenceSource
 from app.utils.logger import logger
 from datetime import datetime
 
@@ -82,7 +82,7 @@ class RiskScoringEngine:
         comparisons = 0
         
         for m in milestones:
-            reports = db.query(ValidationReport).filter(ValidationReport.milestone_id == m.id).all()
+            reports = db.query(GroundAgentReport).filter(GroundAgentReport.milestone_id == m.id).all()
             for r in reports:
                 # If milestone has target/actual amounts, we compare
                 if m.target_amount and m.actual_amount:
@@ -120,7 +120,7 @@ class RiskScoringEngine:
 
     def _calculate_agent_trust_score(self, db: Session, startup_id: int) -> float:
         """Aggregates confidence scores from independent ground agents."""
-        reports = db.query(ValidationReport).join(Milestone).filter(
+        reports = db.query(GroundAgentReport).join(Milestone).filter(
             Milestone.startup_id == startup_id
         ).all()
         

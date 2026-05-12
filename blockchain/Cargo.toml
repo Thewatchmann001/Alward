@@ -6,7 +6,12 @@ members = [
 resolver = "1"
 
 [patch.crates-io]
-toml_edit = { package = "toml_edit", version = "=0.21.1" }
+block-buffer = { path = "patches/utils/block-buffer" }
+cpufeatures = { path = "patches/utils/cpufeatures" }
+toml_edit = { path = "patches/toml/crates/toml_edit" }
+getrandom = { git = "https://github.com/rust-random/getrandom", tag = "v0.2.15" }
+crypto-common = { path = "patches/utils/traits/crypto-common" }
+digest = { path = "patches/utils/traits/digest" }
 
 [profile.release]
 overflow-checks = true

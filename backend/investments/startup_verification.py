@@ -16,7 +16,7 @@ from app.services.credibility_service import CredibilityService
 from app.services.risk_scoring_engine import RiskScoringEngine
 from app.services.milestone_service import MilestoneService
 from app.services.validation_service import ValidationService
-from app.db.models import Startup, User, Milestone, Evidence, ValidationReport
+from app.db.models import Startup, User, Milestone, Evidence, GroundAgentReport
 from app.utils.logger import logger
 
 
@@ -186,7 +186,7 @@ class StartupVerification:
         milestone_list = []
         for m in milestones:
             evidence = db.query(Evidence).filter(Evidence.milestone_id == m.id).all()
-            reports = db.query(ValidationReport).filter(ValidationReport.milestone_id == m.id).all()
+            reports = db.query(GroundAgentReport).filter(GroundAgentReport.milestone_id == m.id).all()
             
             milestone_list.append({
                 "id": m.id,
