@@ -1,4 +1,4 @@
-# TrustBridge — single root Compose for local dev and GCP-friendly deployment
+# ALWARD — single root Compose for local dev and GCP-friendly deployment
 # Usage: docker compose up -d
 # Backend: http://localhost:8000  Frontend: http://localhost:3000
 
