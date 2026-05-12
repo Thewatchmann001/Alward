@@ -19,7 +19,7 @@ from app.db.session import get_db
 from app.db.models import (
     User, Startup, Investment, Employee, Attestation, 
     GroundAgentApplication, ApplicationStatus, UserRole,
-    Milestone, GroundAgentReport, Evidence
+    Milestone, GroundAgentReport, Evidence, Proposal, ProposalStatus
 )
 from app.core.config import settings
 from app.utils.logger import logger
@@ -257,6 +257,82 @@ async def get_pending_admin_milestones(
         return result
     except Exception as e:
         logger.error(f"Error fetching pending admin milestones: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/api/admin/proposals/pending")
+async def get_pending_proposals(
+    current_user: User = Depends(require_role(["admin", "superadmin"])),
+    db: Session = Depends(get_db)
+):
+    """List investment proposals that are pending admin approval."""
+    try:
+        proposals = db.query(Proposal).filter(Proposal.status == ProposalStatus.PENDING_ADMIN).all()
+        result = []
+        for p in proposals:
+            startup = db.query(Startup).filter(Startup.id == p.startup_id).first()
+            milestones = db.query(Milestone).filter(Milestone.proposal_version_id == p.id).all()
+            
+            result.append({
+                "id": p.id,
+                "startup_id": startup.startup_id,
+                "startup_name": startup.name,
+                "funding_goal": p.funding_goal,
+                "version_number": p.version_number,
+                "status": p.status.value if hasattr(p.status, 'value') else p.status,
+                "created_at": p.created_at.isoformat() if p.created_at else None,
+                "milestones": [
+                    {
+                        "id": m.id,
+                        "title": m.title,
+                        "description": m.description,
+                        "amount": m.amount
+                    } for m in milestones
+                ]
+            })
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching pending proposals: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/api/admin/proposals/{proposal_id}/approve")
+async def approve_proposal_endpoint(
+    proposal_id: int,
+    current_user: User = Depends(require_role(["admin", "superadmin"])),
+    db: Session = Depends(get_db)
+):
+    """Approve a startup's investment proposal (LOCKED status)."""
+    try:
+        proposal = db.query(Proposal).filter(Proposal.id == proposal_id).first()
+        if not proposal:
+            raise HTTPException(status_code=404, detail="Proposal not found")
+            
+        proposal.status = ProposalStatus.LOCKED
+        db.commit()
+        return {"message": "Proposal approved and locked", "proposal_id": proposal.id}
+    except Exception as e:
+        logger.error(f"Error approving proposal: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/api/admin/proposals/{proposal_id}/reject")
+async def reject_proposal_endpoint(
+    proposal_id: int,
+    current_user: User = Depends(require_role(["admin", "superadmin"])),
+    db: Session = Depends(get_db)
+):
+    """Reject a startup's investment proposal."""
+    try:
+        proposal = db.query(Proposal).filter(Proposal.id == proposal_id).first()
+        if not proposal:
+            raise HTTPException(status_code=404, detail="Proposal not found")
+            
+        proposal.status = ProposalStatus.REJECTED
+        db.commit()
+        return {"message": "Proposal rejected", "proposal_id": proposal.id}
+    except Exception as e:
+        logger.error(f"Error rejecting proposal: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/api/investor/milestones/pending")
