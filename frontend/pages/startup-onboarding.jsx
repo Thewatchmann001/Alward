@@ -5,7 +5,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../contexts/AuthContext";
-import { startupAPI, authAPI } from "../lib/api";
+import { startupAPI } from "../lib/api";
 import {
   Building2,
   DollarSign,
@@ -31,9 +31,6 @@ const INDUSTRIES = [
 export default function StartupOnboarding() {
   const router = useRouter();
   const { isAuthenticated, user, refetchCapabilities } = useAuth();
-  const [solanaAddress, setSolanaAddress] = useState(
-    user?.wallet_address || ""
-  );
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -72,12 +69,6 @@ export default function StartupOnboarding() {
       router.push("/login");
       return;
     }
-    // Use wallet address from user if available
-    if (user?.wallet_address) {
-      setSolanaAddress(user.wallet_address);
-    } else {
-      setSolanaAddress("");
-    }
     // Load existing startup data if editing
     fetchExistingStartup();
   }, [isAuthenticated, router, user]);
@@ -109,11 +100,6 @@ export default function StartupOnboarding() {
         founder_experience_years: data.founder_experience_years ? data.founder_experience_years.toString() : "",
       });
       
-      // Set wallet address if available
-      if (data.wallet_address) {
-        setSolanaAddress(data.wallet_address);
-      }
-      
       toast.success("Loaded existing startup data. You can edit and save changes.");
     } catch (error) {
       if (error.response && error.response.status !== 404) {
@@ -124,16 +110,6 @@ export default function StartupOnboarding() {
         console.log("No existing startup found, creating new one...");
       }
     }
-  };
-
-  const validateSolanaAddress = (address) => {
-    if (!address || !address.trim()) return false;
-    const addr = address.trim();
-    // Basic Solana address validation: 32-44 characters, base58 encoded
-    if (addr.length < 32 || addr.length > 44) return false;
-    // Base58 characters (no 0, O, I, l)
-    const base58Regex = /^[1-9A-HJ-NP-Za-km-z]+$/;
-    return base58Regex.test(addr);
   };
 
   const validateStep = (step) => {
@@ -164,14 +140,6 @@ export default function StartupOnboarding() {
       if (!formData.funding_goal || parseFloat(formData.funding_goal) <= 0) {
         newErrors.funding_goal = "Valid funding goal is required";
       }
-      
-      // Automatic wallet check: If we have an address in state, it's valid
-      if (!solanaAddress || !solanaAddress.trim()) {
-        newErrors.solanaAddress = "Solana wallet address is required. Please connect a wallet or enter an address.";
-      } else if (!validateSolanaAddress(solanaAddress)) {
-        newErrors.solanaAddress =
-          "Invalid Solana wallet address format (must be 32-44 characters, base58 encoded)";
-      }
     }
 
     setErrors(newErrors);
@@ -191,41 +159,15 @@ export default function StartupOnboarding() {
   const handleSubmit = async () => {
     if (!validateStep(4)) return;
 
-    if (!solanaAddress || !solanaAddress.trim()) {
-      toast.error("Please enter your Solana wallet address");
-      return;
-    }
-
-    const trimmedAddress = solanaAddress.trim();
-    if (!validateSolanaAddress(trimmedAddress)) {
-      toast.error("Invalid Solana wallet address format");
-      return;
-    }
-
     setLoading(true);
     try {
-      // First, update user's wallet address if it's different
-      if (user && user.id && trimmedAddress !== user.wallet_address) {
-        try {
-          await authAPI.updateUser(user.id, {
-            wallet_address: trimmedAddress,
-          });
-        } catch (error) {
-          console.error("Error updating wallet address:", error);
-          const errorMsg = error.response?.data?.detail || "Failed to update wallet address";
-          toast.error(errorMsg);
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Register startup
+      // Register startup (wallet address is managed via profile settings, not onboarding)
       const response = await startupAPI.register({
         ...formData,
         funding_goal: parseFloat(formData.funding_goal),
         team_size: parseInt(formData.team_size) || 1,
         founder_experience_years: parseInt(formData.founder_experience_years) || null,
-        wallet_address: trimmedAddress,
+        wallet_address: user?.wallet_address || null,
       });
 
       const data = response.data;
@@ -667,46 +609,16 @@ export default function StartupOnboarding() {
                 </p>
               </div>
 
-              {/* Solana Wallet Address */}
-              <div>
-                <label className="block text-white/80 mb-2">
-                  Solana Wallet Address *
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={solanaAddress || ""}
-                    onChange={(e) => setSolanaAddress(e.target.value)}
-                    disabled={!!user?.wallet_address}
-                    className={`w-full px-4 py-3 backdrop-blur-xl bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 font-mono text-sm ${
-                      user?.wallet_address ? "opacity-70 cursor-not-allowed" : ""
-                    }`}
-                    placeholder="Enter your Solana wallet address (32-44 characters)"
-                  />
-                  {user?.wallet_address && (
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <CheckCircle className="w-5 h-5 text-green-400" />
-                    </div>
-                  )}
+              {/* Wallet info — read-only, set via profile */}
+              {user?.wallet_address && (
+                <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/5 border border-white/10">
+                  <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-white/80 text-sm font-medium">Wallet linked to your profile</p>
+                    <p className="font-mono text-xs text-white/50 break-all">{user.wallet_address}</p>
+                  </div>
                 </div>
-                {errors.solanaAddress && (
-                  <p className="text-red-400 text-sm mt-1">
-                    {errors.solanaAddress}
-                  </p>
-                )}
-                <p className="text-white/60 text-xs mt-2">
-                  Your Solana wallet address will be used for blockchain
-                  transactions.
-                  {user?.wallet_address && (
-                    <span className="block mt-1">
-                      Current profile address:{" "}
-                      <span className="font-mono text-xs">
-                        {user.wallet_address}
-                      </span>
-                    </span>
-                  )}
-                </p>
-              </div>
+              )}
             </div>
           )}
 
