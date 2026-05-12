@@ -10,6 +10,7 @@ class UserRole(str, enum.Enum):
     STARTUP = "founder"
     INVESTOR = "investor"
     ADMIN = "admin"
+    SUPERADMIN = "superadmin"
     USER = "user"
     VENDOR = "vendor"
 
@@ -37,6 +38,8 @@ class User(Base):
     auth_provider = Column(String(20), default="local", nullable=False)
     provider_id = Column(String(255), nullable=True, index=True)
     last_login = Column(DateTime, nullable=True)
+    failed_login_attempts = Column(Integer, default=0)
+    locked_until = Column(DateTime, nullable=True)
 
     # Relationships
     startups = relationship("Startup", back_populates="founder")

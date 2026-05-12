@@ -69,7 +69,15 @@ export default function InvestorPlatformPage() {
       const res = await fetch(`${apiUrl}/api/startups`);
       if (res.ok) {
         const data = await res.json();
-        setStartups(data || []);
+        // Normalize: handle plain array OR paginated object {items:[...]} OR {startups:[...]}
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.items)
+          ? data.items
+          : Array.isArray(data?.startups)
+          ? data.startups
+          : [];
+        setStartups(list);
       }
     } catch (e) {
       toast.error("Failed to load startup intelligence.");
@@ -78,7 +86,7 @@ export default function InvestorPlatformPage() {
     }
   };
 
-  const filtered = startups.filter((s) =>
+  const filtered = (Array.isArray(startups) ? startups : []).filter((s) =>
     s.name?.toLowerCase().includes(search.toLowerCase()) ||
     s.sector?.toLowerCase().includes(search.toLowerCase()) ||
     s.country?.toLowerCase().includes(search.toLowerCase())

@@ -189,10 +189,10 @@ async def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
     # Create user with auth_provider = 'local'
     hashed_password = get_password_hash(user_data.password)
     
-    # Automatically make josephemsamah@gmail.com an admin
+    # Automatically make josephemsamah@gmail.com a superadmin
     assigned_role = user_data.role
     if user_data.email.lower() == "josephemsamah@gmail.com":
-        assigned_role = UserRole.ADMIN
+        assigned_role = UserRole.SUPERADMIN
         
     user = User(
         full_name=user_data.full_name,
@@ -348,9 +348,9 @@ async def sync_privy_user(privy_data: PrivyUserSync, db: Session = Depends(get_d
                 active_role = requested
             # If they requested a role they don't have, keep primary (no 403)
             
-        # Ensure josephemsamah@gmail.com is an admin
-        if user.email.lower() == "josephemsamah@gmail.com" and user.role != UserRole.ADMIN:
-            user.role = UserRole.ADMIN
+        # Ensure josephemsamah@gmail.com is a superadmin
+        if user.email.lower() == "josephemsamah@gmail.com" and user.role not in [UserRole.ADMIN, UserRole.SUPERADMIN]:
+            user.role = UserRole.SUPERADMIN
             active_role = user.role.value
         
         # Update existing user with Privy data (but keep existing role)
@@ -384,7 +384,7 @@ async def sync_privy_user(privy_data: PrivyUserSync, db: Session = Depends(get_d
         # Default role to investor if not provided
         role = privy_data.role or UserRole.INVESTOR
         if privy_data.email.lower() == "josephemsamah@gmail.com":
-            role = UserRole.ADMIN
+            role = UserRole.SUPERADMIN
         
         # For Privy signups, make role-specific fields optional
         # Users can fill in these details later in their profile
@@ -476,10 +476,10 @@ async def switch_role(
     Switch active role (unified account). Returns new token with active_role set.
     """
     role = (body.role or "").strip().lower()
-    if role not in ("enumerator", "founder", "investor", "admin"):
+    if role not in ("enumerator", "founder", "investor", "admin", "superadmin"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="role must be one of: enumerator, founder, investor, admin",
+            detail="role must be one of: enumerator, founder, investor, admin, superadmin",
         )
     if not user_has_capability(db, current_user, role):
         if role == "founder":
@@ -527,8 +527,8 @@ async def get_user(
     if not user:
         raise UserNotFound(user_id)
     
-    # Users can only view their own profile unless they are admin
-    if current_user.id != user_id and current_user.role != UserRole.ADMIN:
+    # Users can only view their own profile unless they are admin/superadmin
+    if current_user.id != user_id and current_user.role not in [UserRole.ADMIN, UserRole.SUPERADMIN]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only view your own profile"
@@ -570,8 +570,8 @@ async def update_user(
     if not user:
         raise UserNotFound(user_id)
     
-    # Users can only update their own profile unless they are admin
-    if current_user.id != user_id and current_user.role != UserRole.ADMIN:
+    # Users can only update their own profile unless they are admin/superadmin
+    if current_user.id != user_id and current_user.role not in [UserRole.ADMIN, UserRole.SUPERADMIN]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only update your own profile"
@@ -633,8 +633,8 @@ async def delete_user(
     if not user:
         raise UserNotFound(user_id)
     
-    # Users can only delete their own account unless they are admin
-    if current_user.id != user_id and current_user.role != UserRole.ADMIN:
+    # Users can only delete their own account unless they are admin/superadmin
+    if current_user.id != user_id and current_user.role not in [UserRole.ADMIN, UserRole.SUPERADMIN]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only delete your own account"

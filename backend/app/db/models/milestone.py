@@ -22,6 +22,7 @@ class Milestone(Base):
     amount = Column(Float, nullable=False)
     status = Column(Enum(MilestoneStatus), default=MilestoneStatus.PENDING)
     startup_id = Column(Integer, ForeignKey("startups.id"), nullable=True) # Optional link for direct querying
+    alward_approved = Column(Boolean, default=False)
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
