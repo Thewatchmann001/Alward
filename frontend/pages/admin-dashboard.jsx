@@ -47,7 +47,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!isAuthenticated) { router.push("/login"); return; }
-    if (user?.role !== "admin") {
+    if (user?.role !== "admin" && user?.role !== "superadmin") {
       toast.error("Unauthorized access.");
       router.push("/");
       return;
@@ -227,7 +227,7 @@ export default function AdminDashboard() {
     fetchMilestones();
   };
 
-  if (!isAuthenticated || user?.role !== "admin") return null;
+  if (!isAuthenticated || (user?.role !== "admin" && user?.role !== "superadmin")) return null;
 
   return (
     <div className="min-h-screen bg-[#020617] text-white font-sans selection:bg-[#C9A04A]/20">

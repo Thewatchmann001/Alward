@@ -67,6 +67,12 @@ export default function StartupDashboard() {
           const progress = (data.total_investments / data.funding_goal) * 100;
           setFundingProgress(Math.min(100, progress));
         }
+        // If still pending, send to marketplace — dashboard is post-verification only
+        if (data.status === 'pending') {
+          toast("Your startup is pending admin approval. Visit the marketplace while you wait.", { icon: '⏳' });
+          router.push('/startup-marketplace');
+          return;
+        }
       } else if (response.status === 404) {
         router.push("/startup-onboarding");
       }

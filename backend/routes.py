@@ -53,7 +53,7 @@ from app.core.dependencies import get_current_user, require_role
 
 @router.get("/api/admin/startups/pending")
 async def get_pending_startups(
-    current_user: User = Depends(require_role(["admin"])),
+    current_user: User = Depends(require_role(["admin", "superadmin"])),
     db: Session = Depends(get_db)
 ):
     """List startups that are pending admin approval."""
@@ -80,7 +80,7 @@ async def get_pending_startups(
 @router.post("/api/admin/startups/{startup_id}/approve")
 async def approve_startup(
     startup_id: int,
-    current_user: User = Depends(require_role(["admin"])),
+    current_user: User = Depends(require_role(["admin", "superadmin"])),
     db: Session = Depends(get_db)
 ):
     """Approve a pending startup to be listed on the platform."""
@@ -95,7 +95,7 @@ async def approve_startup(
 @router.post("/api/admin/startups/{startup_id}/reject")
 async def reject_startup(
     startup_id: int,
-    current_user: User = Depends(require_role(["admin"])),
+    current_user: User = Depends(require_role(["admin", "superadmin"])),
     db: Session = Depends(get_db)
 ):
     """Reject a pending startup."""
@@ -152,7 +152,7 @@ async def apply_for_ground_agent(
 @router.get("/api/admin/ground-agents/applications")
 async def get_ground_agent_applications(
     status: Optional[str] = "pending",
-    current_user: User = Depends(require_role(["admin"])),
+    current_user: User = Depends(require_role(["admin", "superadmin"])),
     db: Session = Depends(get_db)
 ):
     """List ground agent applications."""
@@ -180,7 +180,7 @@ async def get_ground_agent_applications(
 @router.post("/api/admin/ground-agents/applications/{application_id}/approve")
 async def approve_ground_agent_application(
     application_id: int,
-    current_user: User = Depends(require_role(["admin"])),
+    current_user: User = Depends(require_role(["admin", "superadmin"])),
     db: Session = Depends(get_db)
 ):
     """Approve a ground agent application and grant the role."""
@@ -205,7 +205,7 @@ async def approve_ground_agent_application(
 @router.post("/api/admin/ground-agents/applications/{application_id}/reject")
 async def reject_ground_agent_application(
     application_id: int,
-    current_user: User = Depends(require_role(["admin"])),
+    current_user: User = Depends(require_role(["admin", "superadmin"])),
     db: Session = Depends(get_db)
 ):
     """Reject a ground agent application."""
@@ -223,7 +223,7 @@ async def reject_ground_agent_application(
 
 @router.get("/api/admin/milestones/pending")
 async def get_pending_admin_milestones(
-    current_user: User = Depends(require_role(["admin"])),
+    current_user: User = Depends(require_role(["admin", "superadmin"])),
     db: Session = Depends(get_db)
 ):
     """List milestones that have been validated by agents and are awaiting ALWARD Admin approval."""
@@ -310,7 +310,7 @@ async def get_pending_investor_milestones(
 @router.post("/api/admin/milestones/{milestone_id}/approve")
 async def mark_milestone_alward_approved(
     milestone_id: int,
-    current_user: User = Depends(require_role(["admin"])),
+    current_user: User = Depends(require_role(["admin", "superadmin"])),
     db: Session = Depends(get_db)
 ):
     """Mark a milestone as approved by ALWARD Admin after on-chain signature."""

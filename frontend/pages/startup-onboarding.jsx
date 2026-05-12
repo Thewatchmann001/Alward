@@ -174,12 +174,12 @@ export default function StartupOnboarding() {
 
       await refetchCapabilities?.();
       if (data.already_exists) {
-        toast.success("Redirecting to your startup dashboard...");
-        router.push("/startup-dashboard");
+        toast.success("Redirecting to startup marketplace...");
+        router.push("/startup-marketplace");
       } else {
-        toast.success("Startup profile created successfully!");
+        toast.success("Startup profile submitted! Awaiting admin verification.");
         setVerificationStatus("pending");
-        router.push("/startup-dashboard");
+        router.push("/startup-marketplace");
       }
     } catch (error) {
       const errorData = error.response?.data;
