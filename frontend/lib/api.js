@@ -26,6 +26,7 @@ export const authAPI = {
   register: (data) => api.post('/api/users/register', data),
   login: (data) => api.post('/api/users/login', data),
   getUser: (userId) => api.get(`/api/users/${userId}`),
+  updateUser: (userId, data) => api.patch(`/api/users/${userId}`, data),
   syncPrivy: (data) => api.post('/api/users/privy/sync', data), // Sync Privy user with backend
   // Unified account: capabilities and role switching
   getCapabilities: () => api.get('/api/users/me/capabilities'),
@@ -55,6 +56,7 @@ export const startupAPI = {
     api.post(`/api/startups/${startupId}/invest?investor_id=${investorId}&amount=${amount}`),
   // New endpoints
   list: (params = {}) => api.get('/api/startups/list', { params }),
+  getByFounder: (founderId) => api.get(`/api/startups/by-founder/${founderId}`),
   verify: (startupId) => api.get(`/api/startups/verify/${startupId}`),
 };
 

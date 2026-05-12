@@ -15,7 +15,7 @@ import {
   LogOut, Shield, TrendingUp, Search, Filter,
   ChevronRight, Globe, ArrowLeft, Zap, Lock,
   ExternalLink, BarChart2, Users, DollarSign,
-  Target, CheckCircle
+  Target, CheckCircle, Copy
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Logo from "../components/Logo";
@@ -225,6 +225,22 @@ export default function InvestorPlatformPage() {
                 {selectedStartup.country}
               </span>
               <span>{selectedStartup.sector}</span>
+              <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg border border-white/10">
+                <span className="text-[10px] font-mono text-slate-400">
+                  {selectedStartup.wallet_address ? `${selectedStartup.wallet_address.substring(0, 6)}...${selectedStartup.wallet_address.substring(selectedStartup.wallet_address.length - 6)}` : "No Wallet Attached"}
+                </span>
+                {selectedStartup.wallet_address && (
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedStartup.wallet_address);
+                      toast.success("Startup address copied!");
+                    }}
+                    className="text-slate-500 hover:text-white transition-colors"
+                  >
+                    <Copy size={12} />
+                  </button>
+                )}
+              </div>
             </div>
           </motion.div>
 

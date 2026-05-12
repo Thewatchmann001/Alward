@@ -24,6 +24,7 @@ import {
   ArrowRight,
   Database,
   Lock,
+  Copy,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
@@ -156,6 +157,25 @@ export default function StartupDashboard() {
                   <><CheckCircle size={14} className="text-alward-emerald" /> Synchronized</>
                 )}
               </span>
+            </div>
+            <div className="glass-card-premium px-8 py-4 rounded-2xl border-l-4 border-alward-blue flex flex-col justify-center">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-1">Public Address</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono text-slate-400">
+                  {user?.wallet_address ? `${user.wallet_address.substring(0, 4)}...${user.wallet_address.substring(user.wallet_address.length - 4)}` : "None"}
+                </span>
+                {user?.wallet_address && (
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(user.wallet_address);
+                      toast.success("Address copied!");
+                    }}
+                    className="text-slate-500 hover:text-white transition-colors"
+                  >
+                    <Copy size={12} />
+                  </button>
+                )}
+              </div>
             </div>
             <div className="glass-card-premium px-8 py-4 rounded-2xl border-l-4 border-alward-blue">
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-1">Risk Score</span>

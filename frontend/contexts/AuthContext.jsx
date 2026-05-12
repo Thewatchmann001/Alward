@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../lib/api';
 import { useRouter } from 'next/router';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 const AuthContext = createContext();
 
@@ -258,6 +259,43 @@ export const AuthProvider = ({ children }) => {
       }
     }
   }, [privyAuth?.authenticated, token, user, syncFailed, authError]);
+
+  // AUTOMATIC WALLET ATTACHMENT: Listen to Solana Wallet Adapter (Phantom, etc.)
+  const { publicKey, connected } = useWallet();
+  
+  useEffect(() => {
+    const autoAttachWallet = async () => {
+      if (!token || !user?.id || !connected || !publicKey) return;
+      
+      const walletAddress = publicKey.toBase58();
+      
+      // If user has no wallet address or it's different, update backend
+      if (!user.wallet_address || user.wallet_address !== walletAddress) {
+        try {
+          console.log('🔗 Auto-attaching connected wallet:', walletAddress);
+          const response = await authAPI.updateUser(user.id, {
+            wallet_address: walletAddress
+          });
+          
+          const updatedUser = { 
+            ...user, 
+            wallet_address: walletAddress,
+            ...response.data 
+          };
+          
+          setUser(updatedUser);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+          }
+          console.log('✅ Wallet successfully attached to account');
+        } catch (error) {
+          console.error('❌ Failed to auto-attach wallet:', error);
+        }
+      }
+    };
+
+    autoAttachWallet();
+  }, [connected, publicKey, token, user?.id, user?.wallet_address]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !privyAuth?.authenticated) {

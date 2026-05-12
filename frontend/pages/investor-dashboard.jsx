@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../contexts/AuthContext";
-import { Shield, TrendingUp, CheckCircle, ExternalLink, Activity, DollarSign, Clock, ArrowRight } from "lucide-react";
+import { Shield, TrendingUp, CheckCircle, ExternalLink, Activity, DollarSign, Clock, ArrowRight, Copy } from "lucide-react";
 import toast from "react-hot-toast";
 import { useEscrow } from "../lib/useEscrow";
 import Logo from "../components/Logo";
@@ -104,9 +104,26 @@ export default function InvestorDashboard() {
               <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">
                 Investor
               </p>
-              <p className="text-xs font-bold text-white">
-                {user?.full_name || user?.email}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-bold text-white">
+                  {user?.full_name || user?.email}
+                </p>
+                <div className="h-3 w-[1px] bg-white/10 mx-1"></div>
+                <span className="text-[10px] font-mono text-slate-500">
+                  {user?.wallet_address ? `${user.wallet_address.substring(0, 4)}...${user.wallet_address.substring(user.wallet_address.length - 4)}` : "No Wallet"}
+                </span>
+                {user?.wallet_address && (
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(user.wallet_address);
+                      toast.success("Address copied!");
+                    }}
+                    className="text-slate-600 hover:text-white transition-colors"
+                  >
+                    <Copy size={10} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
