@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useAuth } from "../contexts/AuthContext";
 import {
   Shield, CheckCircle, XCircle, Clock, Check,
-  RefreshCw, Users, Zap, AlertTriangle, ExternalLink, Loader,
+  RefreshCw, Users, Zap, AlertTriangle, ExternalLink, Loader, FileText
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,6 +41,7 @@ export default function AdminDashboard() {
   const [startups, setStartups] = useState([]);
   const [milestones, setMilestones] = useState([]);
   const [agentApps, setAgentApps] = useState([]);
+  const [pendingProposals, setPendingProposals] = useState([]);
   const [loading, setLoading] = useState(true);
   // Track per-milestone signing state: { [milestoneId]: 'idle'|'alward'|'investor'|'done'|'error' }
   const [signingState, setSigningState] = useState({});
@@ -62,7 +63,12 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     setLoading(true);
-    await Promise.all([fetchStartups(), fetchMilestones(), fetchAgentApps()]);
+    await Promise.all([
+      fetchStartups(), 
+      fetchMilestones(), 
+      fetchAgentApps(),
+      fetchPendingProposals()
+    ]);
     setLoading(false);
   };
 
@@ -93,6 +99,16 @@ export default function AdminDashboard() {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       if (res.ok) setAgentApps(await res.json());
+    } catch (e) { console.error(e); }
+  };
+  
+  const fetchPendingProposals = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${apiUrl}/api/admin/proposals/pending`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (res.ok) setPendingProposals(await res.json());
     } catch (e) { console.error(e); }
   };
 
@@ -142,6 +158,36 @@ export default function AdminDashboard() {
       if (res.ok) { toast.success("Application rejected"); fetchAgentApps(); }
       else toast.error("Failed to reject application");
     } catch { toast.error("Error rejecting application"); }
+  };
+
+  const handleApproveProposal = async (proposalId) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${apiUrl}/api/admin/proposals/${proposalId}/approve`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (res.ok) { 
+        toast.success("Proposal approved and locked!"); 
+        fetchPendingProposals(); 
+      }
+      else toast.error("Failed to approve proposal");
+    } catch { toast.error("Error approving proposal"); }
+  };
+
+  const handleRejectProposal = async (proposalId) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${apiUrl}/api/admin/proposals/${proposalId}/reject`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (res.ok) { 
+        toast.success("Proposal rejected"); 
+        fetchPendingProposals(); 
+      }
+      else toast.error("Failed to reject proposal");
+    } catch { toast.error("Error rejecting proposal"); }
   };
 
   /**
@@ -217,6 +263,14 @@ export default function AdminDashboard() {
         investmentId: m.investment_id_onchain,
         milestoneIndex: m.milestone_index,
       });
+      
+      // Sync to backend
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      await fetch(`${apiUrl}/api/admin/milestones/${mid}/paid`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      }).catch(() => {});
+
       toast.dismiss(t2);
       toast.success(`✅ All 3 approvals done! Tranche unlocked. TX: ${result.signature.slice(0, 8)}...`, { duration: 6000 });
       setSigningState((s) => ({ ...s, [mid]: "done" }));
@@ -314,8 +368,9 @@ export default function AdminDashboard() {
             <div className="space-y-4">
               {milestones.map((m) => {
                 const state = signingState[m.id] || "idle";
-                const isDone = state === "done";
-                const isPartial = state === "partial";
+                // Robust state detection: check transient state OR persistent backend state
+                const isDone = state === "done" || m.status === "paid";
+                const isPartial = state === "partial" || (m.alward_approved && m.status !== "paid");
                 const isSigning = state === "alward" || state === "investor";
                 const isError = state === "error";
 
@@ -423,6 +478,62 @@ export default function AdminDashboard() {
                   </motion.div>
                 );
               })}
+            </div>
+          )}
+        </section>
+
+        {/* ── Pending Investment Proposals ── */}
+        <section className="glass-card-premium p-8 rounded-[2rem] border-t-2" style={{ borderColor: '#2563eb' }}>
+          <h2 className="text-sm font-black uppercase tracking-[0.3em] text-blue-400 mb-8 flex items-center gap-2">
+            <FileText size={16} /> Pending Investment Proposals ({pendingProposals.length})
+          </h2>
+          <p className="text-slate-400 text-sm mb-6 max-w-3xl">
+            Startups have submitted these milestone packages for review. 
+            Once you <strong className="text-white">Verify &amp; Lock</strong>, 
+            investors can fund the proposal on the marketplace.
+          </p>
+          
+          {pendingProposals.length === 0 ? (
+            <p className="text-slate-500 text-center py-8">No proposals pending review.</p>
+          ) : (
+            <div className="space-y-6">
+              {pendingProposals.map((p) => (
+                <div key={p.id} className="bg-white/5 rounded-xl p-6 border border-white/5">
+                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold uppercase italic text-white">{p.startup_name}</h3>
+                      <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">
+                        Goal: ${p.funding_goal.toLocaleString()} • Version: {p.version_number}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleRejectProposal(p.id)}
+                        className="px-6 py-3 rounded-xl bg-red-500/10 text-red-500 font-black uppercase tracking-widest text-xs hover:bg-red-500/20 transition"
+                      >
+                        Reject
+                      </button>
+                      <button 
+                        onClick={() => handleApproveProposal(p.id)}
+                        className="px-8 py-3 rounded-xl bg-blue-500/10 text-blue-400 font-black uppercase tracking-widest text-xs hover:bg-blue-500/20 transition flex items-center gap-2"
+                      >
+                        <Shield size={14} /> Verify & Lock
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {p.milestones.map((m, idx) => (
+                      <div key={m.id} className="bg-black/20 p-4 rounded-xl border border-white/5">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Milestone {idx + 1}</p>
+                        <p className="font-bold text-sm text-white mb-1">{m.title}</p>
+                        <p className="text-alward-emerald font-bold text-xs mb-2">${m.amount.toLocaleString()}</p>
+                        <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-3">{m.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </section>

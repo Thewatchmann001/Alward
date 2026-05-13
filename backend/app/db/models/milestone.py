@@ -7,9 +7,12 @@ from app.db.base import Base
 
 class MilestoneStatus(str, enum.Enum):
     PENDING = "pending"
+    EVIDENCE_SUBMITTED = "evidence_submitted"
     AGENT_VERIFIED = "agent_verified"
+    VALIDATED = "validated"
     ADMIN_VERIFIED = "admin_verified"
     PAID = "paid"
+    REJECTED = "rejected"
 
 
 class Milestone(Base):

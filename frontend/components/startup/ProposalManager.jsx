@@ -7,7 +7,9 @@ import {
   Send,
   AlertCircle,
   FileText,
-  DollarSign
+  DollarSign,
+  Camera,
+  Link as LinkIcon
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -18,7 +20,13 @@ export default function ProposalManager({ startupId }) {
   
   // New Proposal Form
   const [fundingGoal, setFundingGoal] = useState("");
-  const [milestones, setMilestones] = useState([{ title: "", amount: "", description: "" }]);
+  const [milestonesForm, setMilestonesForm] = useState([{ title: "", amount: "", description: "" }]);
+
+  // Evidence Form
+  const [activeMilestoneId, setActiveMilestoneId] = useState(null);
+  const [evidenceType, setEvidenceType] = useState("document");
+  const [evidenceUrl, setEvidenceUrl] = useState("");
+  const [isSubmittingEvidence, setIsSubmittingEvidence] = useState(false);
 
   useEffect(() => {
     if (startupId) fetchProposals();
@@ -46,13 +54,13 @@ export default function ProposalManager({ startupId }) {
   };
 
   const handleAddMilestone = () => {
-    setMilestones([...milestones, { title: "", amount: "", description: "" }]);
+    setMilestonesForm([...milestonesForm, { title: "", amount: "", description: "" }]);
   };
 
   const handleMilestoneChange = (index, field, value) => {
-    const updated = [...milestones];
+    const updated = [...milestonesForm];
     updated[index][field] = value;
-    setMilestones(updated);
+    setMilestonesForm(updated);
   };
 
   const handleCreateProposal = async (e) => {
@@ -68,7 +76,7 @@ export default function ProposalManager({ startupId }) {
         body: JSON.stringify({
           startup_id: startupId,
           funding_goal: parseFloat(fundingGoal),
-          milestones: milestones.map(m => ({
+          milestones: milestonesForm.map(m => ({
             ...m,
             amount: parseFloat(m.amount)
           }))
@@ -78,7 +86,7 @@ export default function ProposalManager({ startupId }) {
         toast.success("Draft Proposal created!");
         setShowAddModal(false);
         setFundingGoal("");
-        setMilestones([{ title: "", amount: "", description: "" }]);
+        setMilestonesForm([{ title: "", amount: "", description: "" }]);
         fetchProposals();
       } else {
         toast.error("Failed to create proposal");
@@ -105,6 +113,38 @@ export default function ProposalManager({ startupId }) {
       }
     } catch (error) {
       toast.error("Network error");
+    }
+  };
+
+  const handleSubmitEvidence = async (e) => {
+    e.preventDefault();
+    try {
+      setIsSubmittingEvidence(true);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const response = await fetch(`${apiUrl}/api/milestones/${activeMilestoneId}/evidence`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({
+          type: evidenceType,
+          url: evidenceUrl,
+          description: "Startup submitted proof for triangulation"
+        })
+      });
+      if (response.ok) {
+        toast.success("Evidence submitted for triangulation!");
+        setActiveMilestoneId(null);
+        setEvidenceUrl("");
+        fetchProposals();
+      } else {
+        toast.error("Failed to submit evidence");
+      }
+    } catch (error) {
+      toast.error("Network error");
+    } finally {
+      setIsSubmittingEvidence(false);
     }
   };
 
@@ -146,13 +186,28 @@ export default function ProposalManager({ startupId }) {
             
             <div className="mt-4 border-t border-white/10 pt-4">
               <p className="text-xs font-bold uppercase text-slate-400 mb-2">Milestones ({p.milestones?.length || 0})</p>
-              {p.milestones?.slice(0, 2).map((m, idx) => (
-                <div key={idx} className="text-sm mb-1 flex justify-between">
-                  <span>{m.title}</span>
-                  <span className="text-alward-emerald">${m.amount}</span>
-                </div>
-              ))}
-              {p.milestones?.length > 2 && <div className="text-xs text-slate-500 italic mt-1">+ {p.milestones.length - 2} more...</div>}
+              <div className="space-y-3">
+                {p.milestones?.map((m, idx) => (
+                  <div key={idx} className="bg-white/5 p-3 rounded-lg border border-white/5">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-sm font-bold">{m.title}</p>
+                        <p className="text-[10px] text-slate-500 mt-1 line-clamp-1">{m.description}</p>
+                      </div>
+                      <span className="text-alward-emerald font-bold text-xs">${m.amount.toLocaleString()}</span>
+                    </div>
+                    
+                    {p.status === 'locked' && (
+                      <button 
+                        onClick={() => setActiveMilestoneId(m.id)}
+                        className="mt-3 w-full border border-dashed border-white/10 py-2 rounded-md text-[9px] font-black uppercase tracking-widest text-slate-500 hover:border-alward-blue hover:text-alward-blue transition-all flex items-center justify-center gap-2"
+                      >
+                        <Camera size={12} /> Submit Evidence Layer
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
 
             {p.status === 'draft' && (
@@ -213,12 +268,12 @@ export default function ProposalManager({ startupId }) {
                   </div>
                   
                   <div className="space-y-4">
-                    {milestones.map((m, idx) => (
+                    {milestonesForm.map((m, idx) => (
                       <div key={idx} className="p-4 rounded-xl border border-white/5 bg-white/5 space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="text-[10px] font-black uppercase text-slate-500">Milestone {idx + 1}</span>
-                          {milestones.length > 1 && (
-                            <button type="button" onClick={() => setMilestones(milestones.filter((_, i) => i !== idx))} className="text-red-500 hover:text-red-400 text-xs font-bold">Remove</button>
+                          {milestonesForm.length > 1 && (
+                            <button type="button" onClick={() => setMilestonesForm(milestonesForm.filter((_, i) => i !== idx))} className="text-red-500 hover:text-red-400 text-xs font-bold">Remove</button>
                           )}
                         </div>
                         <div className="grid grid-cols-2 gap-3">
@@ -264,6 +319,61 @@ export default function ProposalManager({ startupId }) {
                 Create Draft
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Submit Evidence Modal */}
+      {activeMilestoneId && (
+        <div className="fixed inset-0 bg-[#020617]/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0f172a] rounded-2xl w-full max-w-md border border-white/10 shadow-[0_0_50px_rgba(16,185,129,0.2)] overflow-hidden">
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-white">
+              <h3 className="text-xl font-black uppercase tracking-widest">Submit Evidence Layer</h3>
+              <p className="text-emerald-100 text-xs mt-1">Strengthen your truth triangulation for ground agents</p>
+            </div>
+            <form onSubmit={handleSubmitEvidence} className="p-6 space-y-5">
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Type of Proof</label>
+                <select 
+                  value={evidenceType}
+                  onChange={(e) => setEvidenceType(e.target.value)}
+                  className="w-full p-3 rounded-lg bg-[#020617] border border-white/10 text-white outline-none focus:border-alward-emerald transition-colors"
+                >
+                  <option value="document">Legal/Financial Document</option>
+                  <option value="media">Photo/Video Proof (URL)</option>
+                  <option value="data_link">Live Data/API URL</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Evidence URL</label>
+                <div className="relative">
+                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                  <input 
+                    type="url" 
+                    value={evidenceUrl}
+                    onChange={(e) => setEvidenceUrl(e.target.value)}
+                    className="w-full pl-10 p-3 rounded-lg bg-[#020617] border border-white/10 text-white outline-none focus:border-alward-emerald transition-colors"
+                    placeholder="https://ipfs.io/ipfs/..."
+                    required
+                  />
+                </div>
+                <p className="text-[10px] text-slate-500 mt-2 flex items-center gap-1">
+                  <AlertCircle size={10} /> Link must be publicly accessible for agents to verify.
+                </p>
+              </div>
+              <div className="flex gap-4 pt-4">
+                <button type="button" onClick={() => setActiveMilestoneId(null)} className="flex-1 py-3 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors rounded-xl border border-white/10">
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isSubmittingEvidence}
+                  className="flex-1 py-3 bg-alward-emerald text-black rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-400 transition-all flex items-center justify-center gap-2"
+                >
+                  {isSubmittingEvidence ? "Syncing..." : <><Send size={14} /> Submit Proof</>}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -318,31 +318,10 @@ export default function InvestorPlatformPage() {
                     </div>
                     
                     {p.status === 'pending_admin' && (
-                      <motion.button
-                        onClick={async () => {
-                          try {
-                            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-                            const res = await fetch(`${apiUrl}/api/proposals/${p.id}/approve`, {
-                              method: "PUT",
-                              headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-                            });
-                            if (res.ok) {
-                              toast.success("Proposal Approved and Locked!");
-                              fetchProposals(selectedStartup.id);
-                            } else {
-                              toast.error("Approval failed");
-                            }
-                          } catch (e) {
-                            toast.error("Network error");
-                          }
-                        }}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full mb-6 py-4 rounded-xl bg-emerald-500 text-black font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:bg-emerald-400 transition-colors"
-                      >
-                        <CheckCircle size={18} />
-                        Approve Proposal Version
-                      </motion.button>
+                      <div className="w-full mb-6 py-4 rounded-xl bg-white/5 border border-white/10 text-slate-500 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                        <Clock size={16} />
+                        Pending Admin Review
+                      </div>
                     )}
 
                     {p.status === 'locked' && (

@@ -80,7 +80,6 @@ class StartupVerification:
         logger.info(f"Listing verified startups (skip={skip}, limit={limit})")
         
         query = db.query(Startup).filter(
-            Startup.status == "approved",
             Startup.credibility_score >= min_credibility
         )
         

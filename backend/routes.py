@@ -229,7 +229,11 @@ async def get_pending_admin_milestones(
     """List milestones that have been validated by agents and are awaiting ALWARD Admin approval."""
     try:
         # Assuming VALIDATED status means ready for ALWARD and not yet approved by ALWARD
-        milestones = db.query(Milestone).filter(Milestone.status == "validated", Milestone.alward_approved == False).all()
+        # Include milestones that are ready for admin review (validated) and not yet fully paid
+        milestones = db.query(Milestone).filter(
+            Milestone.status.in_(["validated", "agent_verified", "admin_verified"]),
+            Milestone.status != MilestoneStatus.PAID
+        ).all()
         result = []
         for m in milestones:
             startup = db.query(Startup).filter(Startup.id == m.startup_id).first()
@@ -401,6 +405,26 @@ async def mark_milestone_alward_approved(
     except Exception as e:
         logger.error(f"Error marking milestone as alward approved: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/api/admin/milestones/{milestone_id}/paid")
+async def mark_milestone_paid(
+    milestone_id: int,
+    current_user: User = Depends(require_role(["admin", "superadmin", "investor"])),
+    db: Session = Depends(get_db)
+):
+    """Mark a milestone as paid after all signatures are collected."""
+    try:
+        milestone = db.query(Milestone).filter(Milestone.id == milestone_id).first()
+        if not milestone:
+            raise HTTPException(status_code=404, detail="Milestone not found")
+        
+        milestone.status = MilestoneStatus.PAID
+        db.commit()
+        return {"message": "Milestone marked as paid"}
+    except Exception as e:
+        logger.error(f"Error marking milestone as paid: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/api/startups")
 @router.get("/api/startups/list")
@@ -599,6 +623,49 @@ class ValidationReportRequest(BaseModel):
     findings_summary: str
     location_verified: Optional[str] = None
 
+class OnchainValidationRequest(BaseModel):
+    startup_id: int
+    milestone_index: int
+    agent_wallet: str
+    confidence_score: int
+    evidence_hash: str
+    notes: Optional[str] = None
+    tx_signature: str
+
+@router.post("/api/milestones/validate-onchain")
+async def validate_onchain_endpoint(request: OnchainValidationRequest, db: Session = Depends(get_db)):
+    """Sync on-chain validation from ground agent to backend."""
+    try:
+        # Find milestone by startup and index
+        milestones = db.query(Milestone).filter(Milestone.startup_id == request.startup_id).order_by(Milestone.created_at).all()
+        if request.milestone_index < 0 or request.milestone_index >= len(milestones):
+            raise HTTPException(status_code=404, detail="Milestone index out of range")
+        
+        milestone = milestones[request.milestone_index]
+        
+        # Save validation report
+        report = GroundAgentReport(
+            milestone_id=milestone.id,
+            agent_id=None,  # Or find user by wallet if we want
+            confidence_score=request.confidence_score / 100.0,
+            findings_summary=request.notes or f"On-chain validation by {request.agent_wallet}",
+            visit_date=datetime.utcnow(),
+            location_verified=None,
+            evidence_url=request.evidence_hash, # We use evidence_hash as URL for simplicity in demo
+            tx_signature=request.tx_signature
+        )
+        db.add(report)
+        
+        # Update milestone
+        milestone.status = MilestoneStatus.VALIDATED
+        db.commit()
+        
+        return {"message": "On-chain validation synced", "milestone_id": milestone.id}
+    except Exception as e:
+        logger.error(f"Error syncing on-chain validation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/api/milestones/{milestone_id}/validate")
 async def validate_milestone_endpoint(milestone_id: int, request: ValidationReportRequest, db: Session = Depends(get_db)):
     """Ground agent submits physical validation for a milestone."""
@@ -611,6 +678,37 @@ async def validate_milestone_endpoint(milestone_id: int, request: ValidationRepo
     except Exception as e:
         logger.error(f"Error validating milestone: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/api/milestones/startup/{startup_id}")
+async def get_startup_milestones(startup_id: int, db: Session = Depends(get_db)):
+    """List all milestones for a specific startup."""
+    try:
+        milestones = db.query(Milestone).filter(Milestone.startup_id == startup_id).all()
+        result = []
+        for m in milestones:
+            # Calculate index (relative position in the startup's milestones)
+            startup_milestones = db.query(Milestone).filter(Milestone.startup_id == startup_id).order_by(Milestone.created_at).all()
+            milestone_index = -1
+            for idx, sm in enumerate(startup_milestones):
+                if sm.id == m.id:
+                    milestone_index = idx
+                    break
+
+            result.append({
+                "id": m.id,
+                "title": m.title,
+                "description": m.description,
+                "amount": m.amount,
+                "status": m.status.value if hasattr(m.status, 'value') else m.status,
+                "milestone_index": milestone_index,
+                "alward_approved": m.alward_approved,
+                "created_at": m.created_at.isoformat() if m.created_at else None
+            })
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching startup milestones: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/api/milestones/pending-validation")
 async def get_pending_validations_endpoint(db: Session = Depends(get_db)):
