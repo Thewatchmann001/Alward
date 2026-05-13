@@ -120,10 +120,10 @@ export default function InvestorPlatformPage() {
             {/* Startup Summary */}
             <div className="space-y-6">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-400 mb-2">
-                  Truth Node
+                <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-2">
+                  Startup profile
                 </p>
-                <h1 className="text-4xl font-black italic tracking-tighter mb-2">
+                <h1 className="text-4xl font-bold tracking-tight mb-2">
                   {selectedStartup.name}
                 </h1>
                 <div className="flex items-center gap-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
@@ -221,10 +221,10 @@ export default function InvestorPlatformPage() {
 
         <main className="max-w-5xl mx-auto px-8 py-12 space-y-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-400 mb-2">
-              Primary Truth Node
+            <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-2">
+              Startup profile
             </p>
-            <h1 className="text-5xl font-black italic tracking-tighter mb-4">
+            <h1 className="text-4xl font-bold tracking-tight mb-4">
               {selectedStartup.name}
             </h1>
             <div className="flex items-center gap-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
@@ -404,11 +404,11 @@ export default function InvestorPlatformPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-12"
         >
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-400 mb-2">
-            Elite Investment Pool
+          <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-2">
+            Investment marketplace
           </p>
-          <h1 className="text-5xl md:text-6xl font-black italic tracking-tighter mb-4">
-            Verified Startups
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+            Verified startups
           </h1>
           <p className="text-slate-500 font-medium max-w-xl">
             Every startup below is on-chain registered. Invest via milestone-gated
@@ -469,7 +469,7 @@ export default function InvestorPlatformPage() {
                   </span>
                 </div>
 
-                <h3 className="text-lg font-black italic tracking-tight text-white mb-1 group-hover:text-blue-400 transition-colors">
+                <h3 className="text-base font-semibold text-white mb-1 group-hover:text-blue-400 transition-colors duration-200">
                   {startup.name}
                 </h3>
                 <div className="flex items-center gap-3 mb-4">

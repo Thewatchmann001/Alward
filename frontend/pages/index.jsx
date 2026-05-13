@@ -1,47 +1,54 @@
 import Link from "next/link";
 import {
-  Shield, Lock, ArrowRight, Globe, CheckCircle, Zap, MapPin, ExternalLink
+  Shield, Lock, ArrowRight, Globe, CheckCircle, MapPin, ExternalLink, TrendingUp
 } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Logo from "../components/Logo";
 import { useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 
-const STEPS = [
+const HOW_IT_WORKS = [
   {
     num: "01",
     role: "Startup Founder",
     color: "#C9A04A",
-    title: "Register & Set Milestones",
+    title: "Register & define milestones",
     desc: "Create your startup profile and define up to 10 measurable milestones. Your funding goal is locked into a smart contract escrow vault — not held by ALWARD.",
   },
   {
     num: "02",
     role: "Investor",
-    color: "#2563eb",
-    title: "Invest with Real USDC",
-    desc: "Connect your Phantom wallet. Sign ONE transaction. Your USDC moves directly from your wallet into the on-chain PDA vault. No intermediaries. No trust required.",
+    color: "#3B82F6",
+    title: "Invest with USDC",
+    desc: "Connect your Phantom wallet and sign one transaction. Your USDC moves directly from your wallet into an on-chain program vault. No intermediaries.",
   },
   {
     num: "03",
     role: "Ground Agent",
-    color: "#10b981",
-    title: "Physical Field Verification",
-    desc: "A trained ground agent physically visits the startup, verifies the milestone, uploads photo evidence to IPFS, and signs an on-chain attestation with their wallet.",
+    color: "#10B981",
+    title: "Physical field verification",
+    desc: "A trained ground agent visits the startup, verifies the milestone, uploads photo evidence to IPFS, and signs an on-chain attestation.",
   },
   {
     num: "04",
     role: "Smart Contract",
     color: "#C9A04A",
-    title: "Automatic Tranche Release",
-    desc: "Once all three parties sign (agent + ALWARD + investor), the contract releases a proportional USDC tranche to the founder — permissionlessly, provably, irreversibly.",
+    title: "Automatic tranche release",
+    desc: "Once all three parties sign (agent + ALWARD + investor), the contract releases a proportional USDC tranche to the founder — permissionlessly and irreversibly.",
   },
 ];
 
 const STATS = [
   { value: "$89B", label: "Diaspora remittances annually", sub: "with zero trusted investment layer" },
   { value: "3-of-3", label: "Approval threshold", sub: "agent + platform + investor" },
-  { value: "0", label: "Dollars ALWARD can touch", sub: "non-custodial by design" },
+  { value: "$0", label: "ALWARD can access", sub: "non-custodial by design" },
+];
+
+const ESCROW_STEPS = [
+  { label: "Investor signs", detail: "500 USDC → Escrow Vault PDA", icon: "🔐", done: true },
+  { label: "Ground Agent attests", detail: "IPFS CID + confidence 94% → Solana", icon: "🌍", done: true },
+  { label: "ALWARD countersigns", detail: "Platform approval on-chain", icon: "🛡️", done: true },
+  { label: "Tranche released", detail: "$125 USDC → Founder wallet", icon: "✅", done: true },
 ];
 
 export default function Home() {
@@ -52,37 +59,50 @@ export default function Home() {
   const heroY = useTransform(scrollYProgress, [0, 0.18], [0, -40]);
 
   return (
-    <div ref={containerRef} className="relative min-h-screen bg-[#020617] text-slate-200 overflow-hidden font-sans selection:bg-[#C9A04A]/30">
-
-      {/* Background orbs */}
+    <div
+      ref={containerRef}
+      className="relative min-h-screen overflow-hidden font-sans"
+      style={{ background: 'var(--alward-bg)', color: 'var(--alward-text)' }}
+    >
+      {/* Background ambience */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-15%] left-[-5%] w-[45%] h-[45%] rounded-full bg-[#C9A04A]/4 blur-[160px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-900/10 blur-[160px]" />
-        <div className="absolute top-[40%] left-[30%] w-[30%] h-[30%] rounded-full bg-emerald-900/6 blur-[120px]" />
+        <div className="absolute top-[-15%] left-[-5%] w-[45%] h-[45%] rounded-full blur-[160px]"
+          style={{ background: 'rgba(201,160,74,0.04)' }} />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[160px]"
+          style={{ background: 'rgba(59,130,246,0.05)' }} />
       </div>
 
-      {/* ── Nav ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 border-b border-white/5 bg-[#020617]/80 backdrop-blur-md">
+      {/* ── Navigation ── */}
+      <nav className="aw-nav px-6 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Logo size="small" />
-          <div className="hidden md:flex items-center gap-10 text-sm font-medium text-slate-400">
-            <Link href="/investor-platform" className="hover:text-white transition-colors">Invest</Link>
-            <Link href="/ground-agent-apply" className="hover:text-[#C9A04A] transition-colors">Become an Agent</Link>
-            <Link href="/startup-onboarding" className="hover:text-white transition-colors">List Your Startup</Link>
+
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium" style={{ color: 'var(--alward-muted)' }}>
+            <Link href="/investor-platform" className="hover:text-white transition-colors duration-200">Invest</Link>
+            <Link href="/ground-agent-apply" className="hover:text-white transition-colors duration-200"
+              style={{ color: 'var(--alward-label)' }}>Become an Agent</Link>
+            <Link href="/startup-onboarding" className="hover:text-white transition-colors duration-200">List Your Startup</Link>
           </div>
-          <div className="flex items-center gap-4">
+
+          <div className="flex items-center gap-3">
             {user?.role === "admin" && (
-              <Link href="/admin-dashboard" className="text-[#C9A04A] text-sm font-bold uppercase tracking-widest hover:text-[#E8C97A] transition-colors flex items-center gap-2">
-                <Shield size={14} /> Admin
+              <Link
+                href="/admin-dashboard"
+                className="flex items-center gap-1.5 text-xs font-semibold transition-colors duration-200"
+                style={{ color: 'var(--alward-gold)' }}
+              >
+                <Shield size={13} /> Admin
               </Link>
             )}
-            <Link href="/login" className="text-sm text-slate-400 hover:text-white transition-colors">Sign In</Link>
             <Link
-              href="/register"
-              className="px-5 py-2.5 rounded-lg text-sm font-bold uppercase tracking-widest transition-all"
-              style={{ background: '#C9A04A', color: '#020617' }}
+              href="/login"
+              className="text-sm font-medium transition-colors duration-200"
+              style={{ color: 'var(--alward-muted)' }}
             >
-              Get Access
+              Sign in
+            </Link>
+            <Link href="/register" className="aw-btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.8125rem' }}>
+              Get started
             </Link>
           </div>
         </div>
@@ -91,88 +111,79 @@ export default function Home() {
       {/* ── Hero ── */}
       <motion.section
         style={{ opacity: heroOpacity, y: heroY }}
-        className="relative pt-40 pb-32 px-6 flex flex-col items-center justify-center text-center z-10 min-h-screen"
+        className="relative pt-36 pb-28 px-6 flex flex-col items-center justify-center text-center z-10 min-h-screen"
       >
-        {/* Badge */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="mb-8">
-          <span
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border"
-            style={{ color: '#C9A04A', borderColor: '#C9A04A33', background: '#C9A04A0D' }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#C9A04A' }} />
+        {/* Live badge */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="mb-8">
+          <span className="aw-badge aw-badge-gold">
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--alward-gold)' }} />
             Live on Solana Devnet
           </span>
         </motion.div>
 
-        {/* Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tight text-white leading-none mb-6"
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[1.08] mb-6 max-w-4xl"
         >
-          Your capital.<br />
-          <span style={{ color: '#C9A04A' }}>Locked until<br />the work is done.</span>
+          Milestone-gated investment,<br />
+          <span style={{ color: 'var(--alward-gold)' }}>verified on the ground.</span>
         </motion.h1>
 
-        {/* Sub */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="max-w-2xl text-lg text-slate-400 mb-12 font-light leading-relaxed"
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="max-w-2xl text-lg mb-12 leading-relaxed font-light"
+          style={{ color: 'var(--alward-muted)' }}
         >
-          ALWARD locks investor USDC in a Solana smart contract. A physical ground agent
-          visits the startup, verifies the milestone on-chain, and only then does a proportional
-          tranche flow to the founder. No promises. No trust. Pure on-chain proof.
+          ALWARD locks investor USDC in a Solana smart contract. A physical ground agent visits
+          the startup and verifies each milestone on-chain. Funds only flow to founders after
+          all three parties approve — no promises, no trust required.
         </motion.p>
 
-        {/* CTAs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="flex flex-col sm:flex-row gap-4"
+          transition={{ duration: 0.7, delay: 0.3 }}
+          className="flex flex-col sm:flex-row gap-3"
         >
-          <Link
-            href="/investor-platform"
-            className="px-8 py-4 rounded-xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 transition-all shadow-[0_0_30px_rgba(201,160,74,0.3)] hover:shadow-[0_0_50px_rgba(201,160,74,0.5)]"
-            style={{ background: '#C9A04A', color: '#020617' }}
-          >
-            Invest in Verified Startups <ArrowRight size={16} />
+          <Link href="/investor-platform" className="aw-btn-primary">
+            Explore Startups <ArrowRight size={16} />
           </Link>
-          <Link
-            href="/ground-agent-apply"
-            className="px-8 py-4 rounded-xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 border border-white/10 text-white hover:bg-white/5 transition-all"
-          >
-            <MapPin size={16} className="text-emerald-400" /> Become a Ground Agent
+          <Link href="/ground-agent-apply" className="aw-btn-secondary">
+            <MapPin size={15} style={{ color: '#34D399' }} /> Become a Ground Agent
           </Link>
         </motion.div>
 
-        {/* Live contract badge */}
+        {/* Contract address */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-16 flex items-center gap-3 text-xs font-mono text-slate-600"
+          transition={{ delay: 0.9 }}
+          className="mt-14 flex items-center gap-2 text-xs font-mono"
+          style={{ color: 'var(--alward-muted)' }}
         >
-          <Lock size={12} className="text-[#C9A04A]" />
+          <Lock size={11} style={{ color: 'var(--alward-gold)' }} />
           <span>Escrow Program: ESCRmwcXk7qzL8YvhNbDqNRp2xzVgAR7SoYbHqHZkaDx</span>
           <a
             href="https://explorer.solana.com/address/ESCRmwcXk7qzL8YvhNbDqNRp2xzVgAR7SoYbHqHZkaDx?cluster=devnet"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#C9A04A] hover:text-[#E8C97A] transition-colors"
+            className="transition-colors duration-200"
+            style={{ color: 'var(--alward-gold)' }}
           >
-            <ExternalLink size={10} />
+            <ExternalLink size={11} />
           </a>
         </motion.div>
       </motion.section>
 
       {/* ── Stats ── */}
-      <section className="py-20 border-t border-white/5 bg-[#04091A] relative z-10">
+      <section className="py-20 relative z-10" style={{ background: 'var(--alward-surface)', borderTop: '1px solid var(--alward-border)', borderBottom: '1px solid var(--alward-border)' }}>
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5 rounded-2xl overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x"
+            style={{ '--tw-divide-opacity': 1, borderColor: 'var(--alward-border)' }}>
             {STATS.map((s, i) => (
               <motion.div
                 key={i}
@@ -180,11 +191,11 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-[#04091A] p-12 text-center"
+                className="p-10 text-center"
               >
-                <div className="text-5xl font-black mb-2" style={{ color: '#C9A04A' }}>{s.value}</div>
-                <div className="text-white font-bold mb-1">{s.label}</div>
-                <div className="text-xs text-slate-500 uppercase tracking-widest">{s.sub}</div>
+                <div className="text-4xl font-bold mb-2" style={{ color: 'var(--alward-gold)' }}>{s.value}</div>
+                <div className="text-white font-semibold mb-1">{s.label}</div>
+                <div className="text-xs" style={{ color: 'var(--alward-muted)' }}>{s.sub}</div>
               </motion.div>
             ))}
           </div>
@@ -192,51 +203,46 @@ export default function Home() {
       </section>
 
       {/* ── How It Works ── */}
-      <section className="py-32 relative z-10 border-t border-white/5">
+      <section className="py-28 relative z-10" style={{ borderTop: '1px solid var(--alward-border)' }}>
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-20"
+            className="text-center mb-16"
           >
-            <span className="text-[10px] font-black uppercase tracking-[0.4em]" style={{ color: '#C9A04A' }}>
-              The Triangulation of Truth
-            </span>
-            <h2 className="text-4xl md:text-5xl font-black text-white mt-4 tracking-tight">
+            <div className="aw-section-label mb-3">The Triangulation of Truth</div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
               Three signals. One release.
             </h2>
-            <p className="text-slate-400 mt-4 max-w-xl mx-auto">
+            <p className="mt-4 max-w-xl mx-auto" style={{ color: 'var(--alward-muted)' }}>
               No single party can release funds alone. The blockchain enforces it.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {STEPS.map((step, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {HOW_IT_WORKS.map((step, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 28 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
-                className="p-8 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all group"
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="aw-card-hover p-7 group"
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-5">
                   <div
-                    className="text-5xl font-black opacity-20 group-hover:opacity-40 transition-opacity flex-shrink-0 leading-none"
+                    className="text-4xl font-bold flex-shrink-0 leading-none opacity-25 group-hover:opacity-50 transition-opacity duration-200"
                     style={{ color: step.color }}
                   >
                     {step.num}
                   </div>
                   <div>
-                    <span
-                      className="text-[9px] font-black uppercase tracking-[0.3em] block mb-2"
-                      style={{ color: step.color }}
-                    >
+                    <div className="mb-2" style={{ color: step.color, fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                       {step.role}
-                    </span>
-                    <h3 className="text-xl font-black text-white mb-3">{step.title}</h3>
-                    <p className="text-slate-400 text-sm leading-relaxed">{step.desc}</p>
+                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">{step.title}</h3>
+                    <p className="text-sm leading-relaxed" style={{ color: 'var(--alward-muted)' }}>{step.desc}</p>
                   </div>
                 </div>
               </motion.div>
@@ -245,83 +251,74 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Problem/Market ── */}
-      <section className="py-32 relative z-10 border-t border-white/5 bg-[#04091A]">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+      {/* ── Problem / Market ── */}
+      <section className="py-28 relative z-10" style={{ background: 'var(--alward-surface)', borderTop: '1px solid var(--alward-border)' }}>
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
+            initial={{ opacity: 0, x: -28 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.7 }}
           >
-            <span className="text-[9px] font-black uppercase tracking-[0.4em] block mb-6" style={{ color: '#C9A04A' }}>
-              The $89 Billion Problem
-            </span>
-            <h2 className="text-4xl md:text-5xl font-black text-white leading-tight tracking-tight mb-8">
+            <div className="aw-section-label mb-4">The $89 Billion problem</div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white leading-tight tracking-tight mb-6">
               Diaspora investors<br />are flying blind.
             </h2>
-            <div className="space-y-5 text-slate-400 leading-relaxed">
+            <div className="space-y-4 text-base leading-relaxed" style={{ color: 'var(--alward-muted)' }}>
               <p>
-                Africans and Asians abroad send billions home every year trying to invest in the
-                next generation of their home country&apos;s economy. They lose it to founders
+                Africans and Asians abroad send billions home every year, investing in the next
+                generation of their home country's economy. Too often they lose it to founders
                 who claim milestones they never hit.
               </p>
               <p>
                 Existing platforms offer no escrow, no verification, and no ground truth.
                 Your money leaves your wallet and enters a promise.
               </p>
-              <p className="text-white font-medium">
+              <p className="font-medium" style={{ color: 'var(--alward-text)' }}>
                 ALWARD replaces promises with proof. Every dollar in escrow.
                 Every milestone physically verified. Every release on-chain.
               </p>
             </div>
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 mt-10 px-8 py-4 rounded-xl font-black uppercase tracking-widest text-sm transition-all"
-              style={{ background: '#C9A04A', color: '#020617' }}
-            >
-              Join the Protocol <ArrowRight size={16} />
+            <Link href="/register" className="aw-btn-primary mt-8 inline-flex">
+              Join the protocol <ArrowRight size={16} />
             </Link>
           </motion.div>
 
-          {/* Live proof panel */}
+          {/* Live escrow flow panel */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.97 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.7 }}
           >
-            <div className="p-1 rounded-2xl" style={{ background: 'linear-gradient(135deg, #C9A04A22, #C9A04A05)' }}>
-              <div className="bg-[#060D1F] rounded-xl p-8 border border-white/5 space-y-6">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Live Escrow Flow</p>
+            <div className="aw-card p-7 space-y-5">
+              <div className="flex items-center justify-between mb-2">
+                <div className="aw-section-label" style={{ marginBottom: 0 }}>Live escrow flow</div>
+                <span className="aw-badge aw-badge-green">Live</span>
+              </div>
 
-                {[
-                  { label: "Investor signs", detail: "500 USDC → Escrow Vault PDA", icon: "🔐", done: true },
-                  { label: "Ground Agent attests", detail: "IPFS CID + confidence 94% → Solana", icon: "🌍", done: true },
-                  { label: "ALWARD signs", detail: "Platform approval on-chain", icon: "🛡️", done: true },
-                  { label: "Tranche released", detail: "$125 USDC → Founder wallet", icon: "⚡", done: true },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-4">
-                    <div className="text-xl flex-shrink-0">{item.icon}</div>
-                    <div className="flex-1">
-                      <div className="text-xs font-bold text-white">{item.label}</div>
-                      <div className="text-[10px] text-slate-500 font-mono mt-0.5">{item.detail}</div>
-                    </div>
-                    <CheckCircle size={16} style={{ color: '#C9A04A' }} className="flex-shrink-0" />
+              {ESCROW_STEPS.map((item, i) => (
+                <div key={i} className="flex items-center gap-4 py-2"
+                  style={{ borderBottom: i < ESCROW_STEPS.length - 1 ? '1px solid var(--alward-border)' : 'none' }}>
+                  <div className="text-xl flex-shrink-0">{item.icon}</div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-white">{item.label}</div>
+                    <div className="text-xs font-mono mt-0.5" style={{ color: 'var(--alward-muted)' }}>{item.detail}</div>
                   </div>
-                ))}
-
-                <div className="pt-4 border-t border-white/5">
-                  <a
-                    href="https://explorer.solana.com/?cluster=devnet"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-colors"
-                    style={{ color: '#C9A04A' }}
-                  >
-                    <ExternalLink size={12} /> Verify on Solana Explorer
-                  </a>
+                  <CheckCircle size={15} style={{ color: 'var(--alward-gold)', flexShrink: 0 }} />
                 </div>
+              ))}
+
+              <div className="pt-2">
+                <a
+                  href="https://explorer.solana.com/?cluster=devnet"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-xs font-semibold transition-colors duration-200"
+                  style={{ color: 'var(--alward-gold)' }}
+                >
+                  <ExternalLink size={12} /> Verify on Solana Explorer
+                </a>
               </div>
             </div>
           </motion.div>
@@ -329,33 +326,27 @@ export default function Home() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="py-32 relative z-10 border-t border-white/5 text-center">
+      <section className="py-28 relative z-10 text-center" style={{ borderTop: '1px solid var(--alward-border)' }}>
         <div className="max-w-3xl mx-auto px-6">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 28 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-5xl md:text-6xl font-black text-white tracking-tight mb-6">
+            <div className="aw-section-label mb-4">Get started</div>
+            <h2 className="text-5xl md:text-6xl font-bold text-white tracking-tight mb-5">
               No trust required.<br />
-              <span style={{ color: '#C9A04A' }}>Just proof.</span>
+              <span style={{ color: 'var(--alward-gold)' }}>Just proof.</span>
             </h2>
-            <p className="text-slate-400 text-lg mb-10">
+            <p className="text-lg mb-10" style={{ color: 'var(--alward-muted)' }}>
               Join the protocol that puts physical ground truth between investors and founders.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/investor-platform"
-                className="px-10 py-4 rounded-xl font-black uppercase tracking-widest text-sm transition-all shadow-[0_0_40px_rgba(201,160,74,0.25)] hover:shadow-[0_0_60px_rgba(201,160,74,0.4)]"
-                style={{ background: '#C9A04A', color: '#020617' }}
-              >
-                Explore Startups
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/investor-platform" className="aw-btn-primary">
+                Explore startups <ArrowRight size={16} />
               </Link>
-              <Link
-                href="/startup-onboarding"
-                className="px-10 py-4 rounded-xl font-black uppercase tracking-widest text-sm border border-white/10 text-white hover:bg-white/5 transition-all"
-              >
-                List Your Startup
+              <Link href="/startup-onboarding" className="aw-btn-secondary">
+                List your startup
               </Link>
             </div>
           </motion.div>
@@ -363,16 +354,16 @@ export default function Home() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="py-12 border-t border-white/5 bg-[#020617] relative z-10">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+      <footer className="py-10 relative z-10" style={{ background: 'var(--alward-surface)', borderTop: '1px solid var(--alward-border)' }}>
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-5">
           <Logo size="small" />
-          <p className="text-xs text-slate-600 text-center">
+          <p className="text-xs text-center" style={{ color: 'var(--alward-muted)' }}>
             © 2026 ALWARD Protocol. Non-custodial. All transactions on Solana Devnet.
           </p>
-          <div className="flex gap-6 text-xs text-slate-500">
-            <Link href="/investor-platform" className="hover:text-white transition-colors">Invest</Link>
-            <Link href="/ground-agent-apply" className="hover:text-white transition-colors">Agents</Link>
-            <Link href="/startup-onboarding" className="hover:text-white transition-colors">Founders</Link>
+          <div className="flex gap-6 text-xs" style={{ color: 'var(--alward-muted)' }}>
+            <Link href="/investor-platform" className="hover:text-white transition-colors duration-200">Invest</Link>
+            <Link href="/ground-agent-apply" className="hover:text-white transition-colors duration-200">Agents</Link>
+            <Link href="/startup-onboarding" className="hover:text-white transition-colors duration-200">Founders</Link>
           </div>
         </div>
       </footer>

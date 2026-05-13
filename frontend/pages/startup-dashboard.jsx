@@ -112,7 +112,7 @@ export default function StartupDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white font-sans selection:bg-alward-blue/30">
+    <div className="min-h-screen font-sans" style={{ background: 'var(--alward-bg)', color: 'var(--alward-text)' }}>
       {/* Background elements */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-alward-blue/5 blur-[120px]"></div>
@@ -120,15 +120,16 @@ export default function StartupDashboard() {
       </div>
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-[#020617]/80 backdrop-blur-xl border-b border-white/5 px-8 py-4">
+      <nav className="aw-nav px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Logo size="medium" />
           <div className="flex items-center gap-6">
             <button
               onClick={() => router.push("/startup-onboarding")}
-              className="px-6 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-colors flex items-center gap-2"
+              className="px-5 py-2 rounded-lg border text-xs font-medium hover:bg-white/10 transition-colors duration-200 flex items-center gap-2"
+              style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'var(--alward-border)', color: 'var(--alward-label)' }}
             >
-              <Edit size={14} /> Update Node
+              <Edit size={14} /> Edit startup
             </button>
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-alward-blue to-alward-emerald p-[1px]">
               <div className="w-full h-full rounded-full bg-[#020617] flex items-center justify-center font-black italic text-xs uppercase">
@@ -143,8 +144,8 @@ export default function StartupDashboard() {
         {/* Node Header */}
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-alward-blue mb-2">Primary Truth Node</h2>
-            <h1 className="text-5xl md:text-6xl font-black uppercase italic tracking-tighter leading-none mb-4">{startup.name}</h1>
+            <h2 className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--alward-gold)' }}>Startup profile</h2>
+            <h1 className="text-4xl font-bold tracking-tight leading-none mb-4">{startup.name}</h1>
             <div className="flex items-center gap-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
               <span className="flex items-center gap-1"><Globe size={14} className="text-alward-emerald" /> {startup.country}</span>
               <span className="w-1 h-1 rounded-full bg-slate-700"></span>
@@ -195,18 +196,19 @@ export default function StartupDashboard() {
           {[
             { id: "overview", icon: TrendingUp, label: "Overview" },
             { id: "improve", icon: Target, label: "Credibility" },
-            { id: "verification", icon: Shield, label: "Verifiers" },
-            { id: "milestones", icon: Database, label: "Truth Ledger" },
-            { id: "messages", icon: MessageSquare, label: "Neural Link" },
+            { id: "verification", icon: Shield, label: "Verification" },
+            { id: "milestones", icon: Database, label: "Milestones" },
+            { id: "messages", icon: MessageSquare, label: "Messages" },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-8 py-4 rounded-2xl flex items-center gap-3 transition-all whitespace-nowrap text-[10px] font-black uppercase tracking-widest border ${
+              className={`px-5 py-2.5 rounded-lg flex items-center gap-2 transition-colors duration-200 whitespace-nowrap text-sm font-medium border ${
                 activeTab === tab.id
-                  ? "bg-alward-blue border-alward-blue text-white shadow-[0_0_20px_rgba(37,99,235,0.3)]"
-                  : "bg-white/5 border-white/5 text-slate-500 hover:bg-white/10"
+                  ? "border-transparent text-white"
+                  : "text-slate-400 hover:text-white"
               }`}
+              style={activeTab === tab.id ? { background: 'var(--alward-gold)', borderColor: 'transparent', color: '#080E1A' } : { background: 'rgba(255,255,255,0.04)', borderColor: 'var(--alward-border)' }}
             >
               <tab.icon size={16} />
               {tab.label}
@@ -227,15 +229,15 @@ export default function StartupDashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
                   {/* Funding Module */}
-                  <div className="glass-card-premium p-10 rounded-[2.5rem]">
+                  <div className="aw-card p-8">
                     <div className="flex items-center justify-between mb-8">
-                      <h3 className="text-sm font-black uppercase tracking-[0.3em] text-alward-blue">Funding Deployment</h3>
+                      <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--alward-muted)' }}>Funding progress</h3>
                       <DollarSign className="text-slate-700" />
                     </div>
                     <div className="space-y-6">
                       <div className="flex justify-between items-baseline">
                         <div className="flex items-baseline gap-2">
-                          <span className="text-5xl font-black italic tracking-tighter">${(startup.total_investments || 0).toLocaleString()}</span>
+                          <span className="text-4xl font-bold">${(startup.total_investments || 0).toLocaleString()}</span>
                           <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Raised</span>
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Goal: ${(startup.funding_goal || 0).toLocaleString()}</span>
@@ -255,16 +257,16 @@ export default function StartupDashboard() {
                   </div>
 
                   {/* Node Identity */}
-                  <div className="glass-card-premium p-10 rounded-[2.5rem] space-y-8">
-                    <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-500">About Truth Node</h3>
+                  <div className="aw-card p-8 space-y-6">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--alward-muted)' }}>About</h3>
                     <div className="space-y-6">
                       <div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-alward-blue block mb-2">Mission Directive</span>
+                        <span className="aw-section-label">Mission</span>
                         <p className="text-slate-300 leading-relaxed font-medium">{startup.mission || startup.description}</p>
                       </div>
                       {startup.vision && (
                         <div>
-                          <span className="text-[10px] font-black uppercase tracking-widest text-alward-emerald block mb-2">Future Projection</span>
+                          <span className="aw-section-label">Vision</span>
                           <p className="text-slate-300 leading-relaxed font-medium">{startup.vision}</p>
                         </div>
                       )}
@@ -274,25 +276,25 @@ export default function StartupDashboard() {
 
                 <div className="space-y-8">
                   {/* Performance Metrics */}
-                  <div className="glass-card-premium p-10 rounded-[2.5rem] space-y-8">
-                    <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-500">Live Metrics</h3>
+                  <div className="aw-card p-8 space-y-5">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--alward-muted)' }}>Key metrics</h3>
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Neural Network Size</span>
-                        <span className="text-lg font-black italic">{startup.team_size || 0}</span>
+                        <span className="text-sm" style={{ color: 'var(--alward-muted)' }}>Team size</span>
+                        <span className="text-lg font-semibold">{startup.team_size || 0}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Verification Level</span>
-                        <span className="text-lg font-black italic text-alward-blue">Tier 1</span>
+                        <span className="text-sm" style={{ color: 'var(--alward-muted)' }}>Verification level</span>
+                        <span className="text-lg font-semibold text-blue-400">Tier 1</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Blockchain Link */}
                   {startup.transaction_signature && (
-                    <div className="glass-card-premium p-10 rounded-[2.5rem] border-t-2 border-alward-blue bg-alward-blue/5">
+                    <div className="aw-card p-6" style={{ borderLeft: '3px solid var(--alward-gold)' }}>
                       <Lock className="text-alward-blue mb-4" size={24} />
-                      <h3 className="text-[10px] font-black uppercase tracking-widest text-white mb-2">Immutable Hash</h3>
+                      <h3 className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--alward-muted)' }}>On-chain record</h3>
                       <p className="text-[10px] font-mono text-slate-500 break-all mb-6">{startup.transaction_signature}</p>
                       <a
                         href={`https://explorer.solana.com/tx/${startup.transaction_signature}?cluster=devnet`}
@@ -316,13 +318,13 @@ export default function StartupDashboard() {
             )}
             {activeTab === "milestones" && <ProposalManager startupId={startup.id} />}
             {activeTab === "messages" && (
-              <div className="glass-card-premium rounded-[3rem] overflow-hidden flex flex-col h-[700px]">
+              <div className="aw-card overflow-hidden flex flex-col h-[700px]">
                 {selectedConversation ? (
                   <div className="flex flex-col h-full">
                     <div className="p-8 border-b border-white/5 flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <button onClick={() => setSelectedConversation(null)} className="text-slate-500 hover:text-white"><ArrowLeft /></button>
-                        <h3 className="text-xl font-black uppercase italic tracking-tighter">
+                        <h3 className="text-base font-semibold">
                           {selectedConversation.investor_name}
                         </h3>
                       </div>
@@ -334,12 +336,12 @@ export default function StartupDashboard() {
                 ) : (
                   <div className="flex h-full">
                     <div className="w-full md:w-1/3 border-r border-white/5 overflow-y-auto">
-                      <div className="p-8 border-b border-white/5"><h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Neural Links</h3></div>
+                      <div className="p-6 border-b" style={{ borderColor: 'var(--alward-border)' }}><h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--alward-muted)' }}>Conversations</h3></div>
                       {conversationsLoading ? <div className="p-8 text-center animate-pulse text-slate-500">Syncing...</div> : conversations.length === 0 ? <div className="p-8 text-center text-slate-500">No active links</div> : (
                         <div className="divide-y divide-white/5">
                           {conversations.map(c => (
                             <button key={c.id} onClick={() => setSelectedConversation(c)} className="w-full p-8 text-left hover:bg-white/[0.02] transition-colors group">
-                              <div className="font-black uppercase italic text-sm mb-1 group-hover:text-alward-blue transition-colors">{c.investor_name}</div>
+                              <div className="font-semibold text-sm mb-1 group-hover:text-yellow-400 transition-colors duration-200" style={{ color: 'var(--alward-text)' }}>{c.investor_name}</div>
                               <div className="text-[10px] text-slate-500 truncate uppercase tracking-widest">{c.last_message_preview}</div>
                             </button>
                           ))}

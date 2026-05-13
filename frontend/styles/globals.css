@@ -1,62 +1,208 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  * {
-    @apply transition-all duration-300 ease-in-out;
-  }
+/* ── ALWARD Design Tokens ─────────────────────────────────────────── */
+:root {
+  --alward-bg:        #080E1A;
+  --alward-surface:   #0D1424;
+  --alward-surface2:  #111929;
+  --alward-border:    rgba(255,255,255,0.07);
+  --alward-gold:      #C9A04A;
+  --alward-gold-dim:  rgba(201,160,74,0.12);
+  --alward-gold-glow: rgba(201,160,74,0.25);
+  --alward-text:      #E8EDF5;
+  --alward-muted:     #6B7A99;
+  --alward-label:     #94A3B8;
+}
 
+@layer base {
   html {
     scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-[#F4F7FB] min-h-screen text-slate-800 selection:bg-indigo-500/30;
-    font-family: 'Inter', sans-serif;
+    background-color: var(--alward-bg);
+    color: var(--alward-text);
+    font-family: 'Inter', 'Outfit', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
   }
 
-  /* Custom Scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--alward-surface); }
+  ::-webkit-scrollbar-thumb { background: #1E2D45; border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--alward-gold); }
 
-  ::-webkit-scrollbar-track {
-    @apply bg-slate-100;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 rounded-full hover:bg-indigo-400;
-  }
+  /* Base selection */
+  ::selection { background: var(--alward-gold-dim); color: #fff; }
 }
 
 @layer components {
-  /* Alward Design System Core */
-  
+
+  /* ── Surfaces ── */
+  .aw-card {
+    background: var(--alward-surface);
+    border: 1px solid var(--alward-border);
+    border-radius: 1rem;
+  }
+
+  .aw-card-hover {
+    background: var(--alward-surface);
+    border: 1px solid var(--alward-border);
+    border-radius: 1rem;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .aw-card-hover:hover {
+    border-color: rgba(201,160,74,0.3);
+    background: var(--alward-surface2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+
+  /* ── Buttons ── */
+  .aw-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.75rem;
+    border-radius: 0.625rem;
+    background: var(--alward-gold);
+    color: #080E1A;
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: 0.01em;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+    box-shadow: 0 4px 20px var(--alward-gold-glow);
+  }
+  .aw-btn-primary:hover {
+    background: #D4AE5A;
+    box-shadow: 0 6px 28px rgba(201,160,74,0.4);
+    transform: translateY(-1px);
+  }
+  .aw-btn-primary:active { transform: translateY(0); }
+
+  .aw-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.75rem;
+    border-radius: 0.625rem;
+    background: transparent;
+    color: var(--alward-text);
+    font-weight: 500;
+    font-size: 0.875rem;
+    border: 1px solid var(--alward-border);
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  }
+  .aw-btn-secondary:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.15);
+    transform: translateY(-1px);
+  }
+
+  /* ── Inputs ── */
+  .aw-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--alward-border);
+    border-radius: 0.625rem;
+    padding: 0.75rem 1rem;
+    color: var(--alward-text);
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .aw-input::placeholder { color: var(--alward-muted); }
+  .aw-input:focus {
+    border-color: var(--alward-gold);
+    box-shadow: 0 0 0 3px var(--alward-gold-dim);
+  }
+
+  /* ── Labels ── */
+  .aw-label {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--alward-muted);
+    margin-bottom: 0.375rem;
+  }
+
+  /* ── Status badges ── */
+  .aw-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 99px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .aw-badge-gold {
+    background: var(--alward-gold-dim);
+    color: var(--alward-gold);
+    border: 1px solid rgba(201,160,74,0.2);
+  }
+  .aw-badge-green {
+    background: rgba(16,185,129,0.1);
+    color: #34D399;
+    border: 1px solid rgba(16,185,129,0.2);
+  }
+  .aw-badge-blue {
+    background: rgba(59,130,246,0.1);
+    color: #60A5FA;
+    border: 1px solid rgba(59,130,246,0.2);
+  }
+  .aw-badge-amber {
+    background: rgba(245,158,11,0.1);
+    color: #FCD34D;
+    border: 1px solid rgba(245,158,11,0.2);
+  }
+
+  /* ── Section headings ── */
+  .aw-section-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--alward-gold);
+    margin-bottom: 0.75rem;
+  }
+
+  /* ── Nav ── */
+  .aw-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(8,14,26,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--alward-border);
+  }
+
+  /* ── Divider ── */
+  .aw-divider {
+    border: none;
+    border-top: 1px solid var(--alward-border);
+    margin: 1.5rem 0;
+  }
+
+  /* ── Legacy compat for pages not yet migrated ── */
   .card-premium {
     @apply bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-2xl;
   }
-  
-  .card-hover {
-    @apply bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-2xl hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-300;
-  }
-
   .btn-primary {
-    @apply bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-semibold 
-           shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:bg-indigo-700
-           transition-all duration-200 flex items-center justify-center gap-2;
+    @apply bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-semibold
+           shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)]
+           hover:bg-indigo-700 transition-all duration-200 flex items-center justify-center gap-2;
   }
-
-  .btn-outline {
-    @apply bg-white border border-slate-200 text-slate-700 px-6 py-2.5 rounded-lg font-semibold
-           hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 flex items-center justify-center gap-2;
-  }
-
   .input-field {
     @apply w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5
            text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20

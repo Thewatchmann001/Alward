@@ -15,91 +15,152 @@ export default function Login() {
   const [role, setRole] = useState('investor');
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    // If fully authenticated with backend and Privy
     if (isAuthenticated && user && privyAuthenticated) {
-      router.push(user.role === 'founder' || user.role === 'startup' ? '/startup-dashboard' : '/investor-platform');
+      router.push(
+        user.role === 'founder' || user.role === 'startup'
+          ? '/startup-dashboard'
+          : '/investor-platform'
+      );
     }
   }, [isAuthenticated, user, privyAuthenticated, router]);
 
   const handlePrivyLogin = async () => {
     try {
-      // Store the requested role so it can be used during backend sync
       if (typeof window !== 'undefined') {
         localStorage.setItem('alward_pending_role', role);
       }
-      
-      // Trigger Privy login modal
       await privyLogin();
     } catch (error) {
-      console.error("Login failed", error);
-      toast.error("Authentication failed. Please try again.");
+      console.error('Login failed', error);
+      toast.error('Authentication failed. Please try again.');
     }
   };
 
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB] text-slate-800 flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full z-10"
+    <div className="min-h-screen flex" style={{ background: 'var(--alward-bg)' }}>
+
+      {/* ── Left panel — brand statement ── */}
+      <div
+        className="hidden lg:flex flex-col justify-between w-[44%] p-12 relative overflow-hidden border-r"
+        style={{ background: 'var(--alward-surface)', borderColor: 'var(--alward-border)' }}
       >
-        <div className="text-center mb-10 flex flex-col items-center justify-center">
-          <AlwardLogo size="large" className="mb-6 justify-center" />
-          <h1 className="text-3xl font-black uppercase tracking-tight text-slate-900 mt-4">Welcome Back</h1>
-          <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-2">Sign in to your Alward Account</p>
+        {/* Ambient glow */}
+        <div
+          className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-[120px] pointer-events-none"
+          style={{ background: 'rgba(201,160,74,0.07)' }}
+        />
+
+        <AlwardLogo size="medium" />
+
+        <div className="relative z-10 space-y-6">
+          <div className="aw-section-label">Investment Protocol</div>
+          <h2 className="text-4xl font-bold leading-tight" style={{ color: 'var(--alward-text)' }}>
+            Capital secured by<br />
+            <span style={{ color: 'var(--alward-gold)' }}>on-chain verification.</span>
+          </h2>
+          <p className="text-base leading-relaxed" style={{ color: 'var(--alward-muted)' }}>
+            Every investment is milestone-gated and physically verified by independent
+            ground agents before funds are released.
+          </p>
+
+          <div className="grid grid-cols-2 gap-4 pt-4">
+            {[
+              { value: '$89B', label: 'Diaspora market' },
+              { value: '3-of-3', label: 'Approval threshold' },
+              { value: '0', label: 'ALWARD can touch' },
+              { value: '100%', label: 'On-chain proof' },
+            ].map(({ value, label }) => (
+              <div
+                key={label}
+                className="p-4 rounded-xl"
+                style={{ background: 'var(--alward-surface2)', border: '1px solid var(--alward-border)' }}
+              >
+                <div className="text-2xl font-bold mb-1" style={{ color: 'var(--alward-gold)' }}>{value}</div>
+                <div className="text-xs" style={{ color: 'var(--alward-muted)' }}>{label}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="bg-white p-10 rounded-[2rem] space-y-6 shadow-xl border border-slate-100">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Access Role</label>
-            <select
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 font-semibold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
-              <option value="investor">DIASPORA INVESTOR</option>
-              <option value="startup">STARTUP FOUNDER</option>
-              <option value="enumerator">GROUND AGENT</option>
-            </select>
+        <p className="text-xs" style={{ color: 'var(--alward-muted)' }}>
+          © 2026 ALWARD Protocol · Non-custodial · Solana Devnet
+        </p>
+      </div>
+
+      {/* ── Right panel — login form ── */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md"
+        >
+          {/* Mobile logo */}
+          <div className="lg:hidden mb-10 flex justify-center">
+            <AlwardLogo size="large" />
           </div>
 
-          <div className="pt-4">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--alward-text)' }}>
+              Sign in to ALWARD
+            </h1>
+            <p className="text-sm" style={{ color: 'var(--alward-muted)' }}>
+              Select your role and authenticate securely via Privy.
+            </p>
+          </div>
+
+          <div className="space-y-5">
+            <div>
+              <label className="aw-label">Access role</label>
+              <select
+                className="aw-input"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                style={{ appearance: 'none', cursor: 'pointer' }}
+              >
+                <option value="investor">Diaspora Investor</option>
+                <option value="startup">Startup Founder</option>
+                <option value="enumerator">Ground Agent</option>
+              </select>
+            </div>
+
             <button
               onClick={handlePrivyLogin}
               disabled={!privyReady}
-              className="w-full px-6 py-4 rounded-xl font-bold uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-3 group disabled:opacity-50"
-              style={{ background: '#C9A04A', color: '#020617' }}
+              className="aw-btn-primary w-full"
+              style={{ opacity: privyReady ? 1 : 0.5, cursor: privyReady ? 'pointer' : 'not-allowed' }}
             >
               {!privyReady ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : (
-                <>
-                  SIGN IN WITH PRIVY <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-                </>
+                <>Continue with Privy <ArrowRight size={16} /></>
               )}
             </button>
-            <p className="text-center text-[10px] text-slate-400 font-semibold mt-4">
-              Secure global login. Wallet created automatically.
-            </p>
-          </div>
 
-          <div className="text-center pt-2 border-t border-slate-100 mt-6">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mt-4">
-              New to Alward?{' '}
-              <Link href="/register" className="font-black transition-colors" style={{ color: '#C9A04A' }}>
-                Create Account
-              </Link>
+            <p className="text-center text-xs" style={{ color: 'var(--alward-muted)' }}>
+              Secure authentication · Wallet created automatically
             </p>
+
+            <div className="pt-4" style={{ borderTop: '1px solid var(--alward-border)' }}>
+              <p className="text-center text-sm" style={{ color: 'var(--alward-muted)' }}>
+                New to ALWARD?{' '}
+                <Link
+                  href="/register"
+                  className="font-semibold transition-colors"
+                  style={{ color: 'var(--alward-gold)' }}
+                >
+                  Create an account
+                </Link>
+              </p>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }

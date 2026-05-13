@@ -112,11 +112,12 @@ function MyApp({ Component, pageProps }) {
   // Show loading while client mounts (prevents hydration mismatch)
   if (!mounted) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f4f8' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#080E1A' }}>
         <div style={{ textAlign: 'center' }}>
-          <div className="animate-spin" style={{ width: 40, height: 40, border: '3px solid #ddd', borderTop: '3px solid #0A66C2', borderRadius: '50%', margin: '0 auto' }}></div>
-          <p style={{ marginTop: 16, color: '#666' }}>Loading Alward...</p>
+          <div style={{ width: 36, height: 36, border: '2px solid rgba(201,160,74,0.2)', borderTop: '2px solid #C9A04A', borderRadius: '50%', margin: '0 auto', animation: 'spin 0.8s linear infinite' }} />
+          <p style={{ marginTop: 14, color: '#6B7A99', fontSize: 13 }}>Loading ALWARD…</p>
         </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }

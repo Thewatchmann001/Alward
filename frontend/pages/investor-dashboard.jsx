@@ -89,8 +89,8 @@ export default function InvestorDashboard() {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white font-sans selection:bg-blue-500/30">
-      <nav className="sticky top-0 z-50 bg-[#020617]/80 backdrop-blur-xl border-b border-white/5 px-8 py-4">
+    <div className="min-h-screen font-sans" style={{ background: 'var(--alward-bg)', color: 'var(--alward-text)' }}>
+      <nav className="aw-nav px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Logo size="medium" />
           <div className="flex items-center gap-6">
@@ -132,7 +132,7 @@ export default function InvestorDashboard() {
       <main className="max-w-7xl mx-auto px-8 py-12 space-y-12">
         <div className="flex justify-between items-end mb-8">
           <div>
-            <h1 className="text-5xl font-black uppercase italic tracking-tighter mb-2">My Portfolio</h1>
+            <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--alward-text)' }}>My portfolio</h1>
             <p className="text-slate-400 font-medium">Track your on-chain investments and approve milestones.</p>
           </div>
         </div>
@@ -140,7 +140,7 @@ export default function InvestorDashboard() {
         {/* Action Required: Milestones */}
         {milestones.length > 0 && (
           <section className="p-8 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/30">
-            <h2 className="text-sm font-black uppercase tracking-[0.3em] text-emerald-400 mb-6 flex items-center gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-emerald-400 mb-6 flex items-center gap-2">
               <Activity size={16} /> Action Required: Approve Milestones
             </h2>
             <p className="text-slate-400 text-sm mb-6 max-w-3xl">
@@ -150,14 +150,14 @@ export default function InvestorDashboard() {
               {milestones.map((m) => (
                 <div key={m.id} className="bg-white/5 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-emerald-500/20">
                   <div>
-                    <h3 className="text-xl font-bold uppercase italic text-white">{m.title}</h3>
-                    <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">Startup: {m.startup_name}</p>
+                    <h3 className="text-base font-semibold text-white">{m.title}</h3>
+                    <p className="text-xs mt-1" style={{ color: 'var(--alward-muted)' }}>Startup: {m.startup_name}</p>
                     <p className="text-sm text-slate-300 mt-3 max-w-2xl">{m.description}</p>
                   </div>
                   <button 
                     onClick={() => handleApproveMilestone(m)}
                     disabled={escrowLoading}
-                    className="px-8 py-4 rounded-xl bg-emerald-500 text-black font-black uppercase tracking-widest text-xs hover:bg-emerald-400 transition flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                    className="px-5 py-2.5 rounded-lg bg-emerald-500 text-black font-semibold text-sm hover:bg-emerald-400 transition-colors duration-200 flex items-center gap-2"
                   >
                     {escrowLoading ? "Signing..." : <><CheckCircle size={16} /> Approve & Release</>}
                   </button>
@@ -170,27 +170,27 @@ export default function InvestorDashboard() {
         {/* Portfolio Stats */}
         {portfolio && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-2xl bg-white/5 border border-white/5">
-              <DollarSign size={16} className="text-slate-500 mb-3" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Total Invested (USDC)</p>
-              <p className="text-3xl font-black italic">${(portfolio.total_invested_usdc || 0).toLocaleString()}</p>
+            <div className="aw-card p-6">
+              <DollarSign size={16} className="mb-3" style={{ color: 'var(--alward-muted)' }} />
+              <p className="aw-label">Total invested (USDC)</p>
+              <p className="text-3xl font-bold">${(portfolio.total_invested_usdc || 0).toLocaleString()}</p>
             </div>
-            <div className="p-6 rounded-2xl bg-white/5 border border-white/5">
-              <TrendingUp size={16} className="text-slate-500 mb-3" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Total Investments</p>
-              <p className="text-3xl font-black italic">{portfolio.total_investments}</p>
+            <div className="aw-card p-6">
+              <TrendingUp size={16} className="mb-3" style={{ color: 'var(--alward-muted)' }} />
+              <p className="aw-label">Total investments</p>
+              <p className="text-3xl font-bold">{portfolio.total_investments}</p>
             </div>
-            <div className="p-6 rounded-2xl bg-white/5 border border-white/5">
-              <Shield size={16} className="text-slate-500 mb-3" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Startups Backed</p>
-              <p className="text-3xl font-black italic">{portfolio.startup_count}</p>
+            <div className="aw-card p-6">
+              <Shield size={16} className="mb-3" style={{ color: 'var(--alward-muted)' }} />
+              <p className="aw-label">Startups backed</p>
+              <p className="text-3xl font-bold">{portfolio.startup_count}</p>
             </div>
           </div>
         )}
 
         {/* Investment History */}
-        <section className="glass-card-premium p-8 rounded-[2rem] border border-white/5">
-          <h2 className="text-sm font-black uppercase tracking-[0.3em] text-blue-400 mb-8 flex items-center gap-2">
+        <section className="aw-card p-8">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-8 flex items-center gap-2">
             <Clock size={16} /> Investment History
           </h2>
           
@@ -209,10 +209,10 @@ export default function InvestorDashboard() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-white/10">
-                    <th className="py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Startup</th>
-                    <th className="py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Amount (USDC)</th>
-                    <th className="py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Date</th>
-                    <th className="py-4 text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Proof</th>
+                    <th className="py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--alward-muted)' }}>Startup</th>
+                    <th className="py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--alward-muted)' }}>Amount (USDC)</th>
+                    <th className="py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--alward-muted)' }}>Date</th>
+                    <th className="py-3 text-xs font-semibold uppercase tracking-wider text-right" style={{ color: 'var(--alward-muted)' }}>Proof</th>
                   </tr>
                 </thead>
                 <tbody>
