@@ -83,14 +83,44 @@ async def approve_startup(
     current_user: User = Depends(require_role(["admin", "superadmin"])),
     db: Session = Depends(get_db)
 ):
-    """Approve a pending startup to be listed on the platform."""
+    """Approve a pending startup to be listed on the platform and register it on-chain."""
     startup = db.query(Startup).filter(Startup.id == startup_id).first()
     if not startup:
         raise HTTPException(status_code=404, detail="Startup not found")
         
+    founder = db.query(User).filter(User.id == startup.founder_id).first()
+    founder_wallet = founder.wallet_address if founder and founder.wallet_address else "11111111111111111111111111111111"
+    
+    try:
+        # Register on-chain
+        client = StartupClient()
+        result = client.register_startup(
+            startup_name=startup.name,
+            sector=startup.sector or "Technology",
+            founder_address=founder_wallet
+        )
+        
+        # Update startup with on-chain data
+        if result and "transaction_signature" in result:
+            startup.transaction_signature = result["transaction_signature"]
+            
+        if result and "startup_id" in result:
+            # Optionally update the internal startup_id to match PDA/on-chain ID
+            # startup.startup_id = result["startup_id"]
+            pass
+            
+    except Exception as e:
+        logger.error(f"Failed to register startup on-chain during approval: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"On-chain verification failed: {str(e)}")
+
     startup.status = "approved"
     db.commit()
-    return {"message": "Startup approved successfully", "startup_id": startup.id}
+    
+    return {
+        "message": "Startup approved and verified on-chain successfully", 
+        "startup_id": startup.id,
+        "transaction_signature": startup.transaction_signature
+    }
 
 @router.post("/api/admin/startups/{startup_id}/reject")
 async def reject_startup(
